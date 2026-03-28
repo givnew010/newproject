@@ -6,7 +6,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Search, Bell, Settings, LayoutDashboard, Package, Warehouse, 
-  BarChart3, Plus, HelpCircle, 
+  BarChart3, Plus, HelpCircle, ShoppingCart,
   Filter, ArrowUpDown, Download, Barcode, Edit2, Trash2, X, 
   Camera, ScanBarcode, ChevronRight, ChevronLeft, Menu
 } from 'lucide-react';
@@ -14,6 +14,9 @@ import { motion, AnimatePresence } from 'motion/react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { InventoryItem, ItemStatus } from './types';
+import PurchaseInvoices from './PurchaseInvoices';
+
+type Page = 'inventory' | 'purchases';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -64,6 +67,7 @@ export default function App() {
     }
     return INITIAL_ITEMS;
   });
+  const [currentPage, setCurrentPage] = useState<Page>('inventory');
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [formData, setFormData] = useState<Partial<InventoryItem>>({});
@@ -177,7 +181,8 @@ export default function App() {
 
         <nav className="flex-1 px-4 space-y-1">
           <NavItem icon={<LayoutDashboard size={20} />} label="لوحة التحكم" />
-          <NavItem icon={<Package size={20} />} label="الأصناف" active />
+          <NavItem icon={<Package size={20} />} label="الأصناف" active={currentPage === 'inventory'} onClick={() => setCurrentPage('inventory')} />
+          <NavItem icon={<ShoppingCart size={20} />} label="فواتير المشتريات" active={currentPage === 'purchases'} onClick={() => setCurrentPage('purchases')} />
           <NavItem icon={<Warehouse size={20} />} label="المخازن" />
           <NavItem icon={<BarChart3 size={20} />} label="التقارير" />
           <NavItem icon={<Settings size={20} />} label="الإعدادات" />
@@ -204,7 +209,9 @@ export default function App() {
             >
               <Menu size={24} />
             </button>
-            <h2 className="font-headline font-extrabold text-primary text-xl lg:text-2xl">إدارة الأصناف</h2>
+            <h2 className="font-headline font-extrabold text-primary text-xl lg:text-2xl">
+              {currentPage === 'inventory' ? 'إدارة الأصناف' : 'فواتير المشتريات'}
+            </h2>
             
             <div className="hidden md:flex relative group mr-4">
               <Search size={18} className="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant" />
@@ -230,8 +237,11 @@ export default function App() {
           </div>
         </header>
 
-        {/* Dashboard Content */}
-        <div className="p-4 lg:p-8 space-y-8 flex-1">
+        {/* Purchases Page */}
+        {currentPage === 'purchases' && <PurchaseInvoices />}
+
+        {/* Inventory Content */}
+        {currentPage === 'inventory' && <div className="p-4 lg:p-8 space-y-8 flex-1">
           {/* Table Actions */}
           <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
             <div className="flex items-center gap-2 w-full sm:w-auto">
@@ -340,7 +350,7 @@ export default function App() {
               </div>
             </div>
           </div>
-        </div>
+        </div>}
       </main>
 
       {/* Add Item Modal */}
@@ -616,10 +626,11 @@ export default function App() {
   );
 }
 
-function NavItem({ icon, label, active = false }: { icon: React.ReactNode, label: string, active?: boolean }) {
+function NavItem({ icon, label, active = false, onClick }: { icon: React.ReactNode, label: string, active?: boolean, onClick?: () => void }) {
   return (
     <a 
-      href="#" 
+      href="#"
+      onClick={(e) => { e.preventDefault(); onClick?.(); }}
       className={cn(
         "px-4 py-3 flex items-center gap-3 rounded-xl transition-all group active:scale-95",
         active 

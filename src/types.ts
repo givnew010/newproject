@@ -19,3 +19,21 @@ export interface Stat {
   icon: string;
   color: string;
 }
+
+export interface InvoiceLineItem {
+  id: string;
+  name: string;
+  quantity: number;
+  price: number;
+  total: number;
+}
+
+export interface PurchaseInvoice {
+  id: string;
+  invoiceNumber: string;
+  supplier: string;
+  date: string;
+  notes?: string;
+  items: InvoiceLineItem[];
+  totalAmount: number;
+}
