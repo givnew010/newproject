@@ -3,12 +3,14 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
   Search, Bell, Settings, LayoutDashboard, Package, Warehouse, 
   BarChart3, Plus, HelpCircle, ShoppingCart,
   Filter, ArrowUpDown, Download, Barcode, Edit2, Trash2, X, 
-  Camera, ScanBarcode, ChevronRight, ChevronLeft, Menu
+  ScanBarcode, ChevronRight, ChevronLeft, Menu,
+  TrendingUp, AlertTriangle, XCircle, Layers,
+  ChevronDown, SortAsc, SortDesc
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { clsx, type ClassValue } from 'clsx';
@@ -75,6 +77,14 @@ export default function App() {
   const [itemToDelete, setItemToDelete] = useState<string | null>(null);
   const [viewingItem, setViewingItem] = useState<InventoryItem | null>(null);
 
+  // Search / Filter / Sort
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterStatus, setFilterStatus] = useState<'all' | ItemStatus>('all');
+  const [sortBy, setSortBy] = useState<'name' | 'quantity' | 'price'>('name');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [isSortOpen, setIsSortOpen] = useState(false);
+
   // Set document direction to RTL
   useEffect(() => {
     document.documentElement.dir = 'rtl';
@@ -87,6 +97,33 @@ export default function App() {
   }, [items]);
 
   const totalItems = items.length;
+
+  // Stats
+  const inStockCount = items.filter(i => i.status === 'in-stock').length;
+  const lowStockCount = items.filter(i => i.status === 'low-stock').length;
+  const outOfStockCount = items.filter(i => i.status === 'out-of-stock').length;
+  const totalValue = items.reduce((s, i) => s + i.price * i.quantity, 0);
+
+  // Filtered + sorted items
+  const displayedItems = useMemo(() => {
+    let result = items.filter(item => {
+      const q = searchQuery.trim().toLowerCase();
+      const matchSearch = !q ||
+        item.name.toLowerCase().includes(q) ||
+        item.sku.toLowerCase().includes(q) ||
+        item.category.toLowerCase().includes(q);
+      const matchStatus = filterStatus === 'all' || item.status === filterStatus;
+      return matchSearch && matchStatus;
+    });
+    result = [...result].sort((a, b) => {
+      let cmp = 0;
+      if (sortBy === 'name') cmp = a.name.localeCompare(b.name, 'ar');
+      else if (sortBy === 'quantity') cmp = a.quantity - b.quantity;
+      else if (sortBy === 'price') cmp = a.price - b.price;
+      return sortOrder === 'asc' ? cmp : -cmp;
+    });
+    return result;
+  }, [items, searchQuery, filterStatus, sortBy, sortOrder]);
 
   const getStatus = (quantity: number): ItemStatus => {
     if (quantity <= 0) return 'out-of-stock';
@@ -213,14 +250,23 @@ export default function App() {
               {currentPage === 'inventory' ? 'إدارة الأصناف' : 'فواتير المشتريات'}
             </h2>
             
-            <div className="hidden md:flex relative group mr-4">
-              <Search size={18} className="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant" />
-              <input 
-                type="text" 
-                placeholder="بحث عن صنف..." 
-                className="bg-surface-container-high border-none rounded-xl pr-10 pl-4 py-2 w-64 focus:ring-2 focus:ring-primary transition-all text-sm outline-none"
-              />
-            </div>
+            {currentPage === 'inventory' && (
+              <div className="hidden md:flex relative group mr-4">
+                <Search size={18} className="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant" />
+                <input
+                  type="text"
+                  placeholder="بحث بالاسم، الرمز، القسم..."
+                  value={searchQuery}
+                  onChange={e => setSearchQuery(e.target.value)}
+                  className="bg-surface-container-high border-none rounded-xl pr-10 pl-4 py-2 w-72 focus:ring-2 focus:ring-primary transition-all text-sm outline-none"
+                />
+                {searchQuery && (
+                  <button onClick={() => setSearchQuery('')} className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-error transition-colors">
+                    <X size={15} />
+                  </button>
+                )}
+              </div>
+            )}
           </div>
 
           <div className="flex items-center gap-2 lg:gap-4">
@@ -246,30 +292,167 @@ export default function App() {
         )}
 
         {/* Inventory Content */}
-        {currentPage === 'inventory' && <div className="p-4 lg:p-8 space-y-8 flex-1">
+        {currentPage === 'inventory' && <div className="p-4 lg:p-8 space-y-6 flex-1">
+
+          {/* Stat Cards */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <StatCard
+              label="إجمالي الأصناف"
+              value={totalItems.toString()}
+              sub={`قيمة: ${totalValue.toLocaleString('ar-SA')} ر.س`}
+              icon={<Layers size={22} />}
+              color="primary"
+            />
+            <StatCard
+              label="متوفر"
+              value={inStockCount.toString()}
+              sub={`${Math.round((inStockCount / (totalItems || 1)) * 100)}% من الأصناف`}
+              icon={<TrendingUp size={22} />}
+              color="green"
+              onClick={() => setFilterStatus(filterStatus === 'in-stock' ? 'all' : 'in-stock')}
+              active={filterStatus === 'in-stock'}
+            />
+            <StatCard
+              label="كمية منخفضة"
+              value={lowStockCount.toString()}
+              sub="تحتاج إعادة طلب"
+              icon={<AlertTriangle size={22} />}
+              color="orange"
+              onClick={() => setFilterStatus(filterStatus === 'low-stock' ? 'all' : 'low-stock')}
+              active={filterStatus === 'low-stock'}
+            />
+            <StatCard
+              label="نفذ المخزون"
+              value={outOfStockCount.toString()}
+              sub="غير متوفر حالياً"
+              icon={<XCircle size={22} />}
+              color="red"
+              onClick={() => setFilterStatus(filterStatus === 'out-of-stock' ? 'all' : 'out-of-stock')}
+              active={filterStatus === 'out-of-stock'}
+            />
+          </div>
+
+          {/* Mobile Search */}
+          <div className="flex md:hidden relative">
+            <Search size={18} className="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant" />
+            <input
+              type="text"
+              placeholder="بحث بالاسم، الرمز، القسم..."
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              className="w-full bg-surface-container-high border-none rounded-xl pr-10 pl-4 py-2.5 focus:ring-2 focus:ring-primary transition-all text-sm outline-none"
+            />
+          </div>
+
           {/* Table Actions */}
-          <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
+          <div className="flex flex-col sm:flex-row gap-3 items-center justify-between">
             <div className="flex items-center gap-2 w-full sm:w-auto">
-              <button className="bg-white px-4 py-2.5 rounded-xl text-sm font-medium text-on-surface-variant flex items-center gap-2 border border-surface-container-high hover:bg-surface-container-low transition-colors shadow-sm">
-                <Filter size={18} />
-                <span>تصفية</span>
-              </button>
-              <button className="bg-white px-4 py-2.5 rounded-xl text-sm font-medium text-on-surface-variant flex items-center gap-2 border border-surface-container-high hover:bg-surface-container-low transition-colors shadow-sm">
-                <ArrowUpDown size={18} />
-                <span>ترتيب</span>
-              </button>
+              {/* Filter Dropdown */}
+              <div className="relative">
+                <button
+                  onClick={() => { setIsFilterOpen(!isFilterOpen); setIsSortOpen(false); }}
+                  className={cn(
+                    "px-4 py-2.5 rounded-xl text-sm font-medium flex items-center gap-2 border transition-colors shadow-sm",
+                    filterStatus !== 'all'
+                      ? "bg-primary text-white border-primary"
+                      : "bg-white text-on-surface-variant border-surface-container-high hover:bg-surface-container-low"
+                  )}
+                >
+                  <Filter size={16} />
+                  <span>{filterStatus === 'all' ? 'تصفية' : filterStatus === 'in-stock' ? 'متوفر' : filterStatus === 'low-stock' ? 'كمية منخفضة' : 'نفذ المخزون'}</span>
+                  <ChevronDown size={14} className={cn("transition-transform", isFilterOpen && "rotate-180")} />
+                </button>
+                <AnimatePresence>
+                  {isFilterOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -6 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -6 }}
+                      className="absolute top-full mt-2 right-0 bg-white rounded-xl shadow-xl border border-surface-container-high z-20 min-w-[160px] overflow-hidden"
+                    >
+                      {(['all', 'in-stock', 'low-stock', 'out-of-stock'] as const).map(status => (
+                        <button
+                          key={status}
+                          onClick={() => { setFilterStatus(status); setIsFilterOpen(false); }}
+                          className={cn(
+                            "w-full text-right px-4 py-2.5 text-sm transition-colors flex items-center gap-2",
+                            filterStatus === status ? "bg-primary-fixed text-primary font-bold" : "hover:bg-surface-container-low text-on-surface"
+                          )}
+                        >
+                          {status === 'all' && <><Layers size={14} />الكل</>}
+                          {status === 'in-stock' && <><TrendingUp size={14} className="text-green-600" />متوفر</>}
+                          {status === 'low-stock' && <><AlertTriangle size={14} className="text-orange-500" />كمية منخفضة</>}
+                          {status === 'out-of-stock' && <><XCircle size={14} className="text-error" />نفذ المخزون</>}
+                        </button>
+                      ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              {/* Sort Dropdown */}
+              <div className="relative">
+                <button
+                  onClick={() => { setIsSortOpen(!isSortOpen); setIsFilterOpen(false); }}
+                  className="bg-white px-4 py-2.5 rounded-xl text-sm font-medium text-on-surface-variant flex items-center gap-2 border border-surface-container-high hover:bg-surface-container-low transition-colors shadow-sm"
+                >
+                  <ArrowUpDown size={16} />
+                  <span>ترتيب</span>
+                  <ChevronDown size={14} className={cn("transition-transform", isSortOpen && "rotate-180")} />
+                </button>
+                <AnimatePresence>
+                  {isSortOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -6 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -6 }}
+                      className="absolute top-full mt-2 right-0 bg-white rounded-xl shadow-xl border border-surface-container-high z-20 min-w-[180px] overflow-hidden"
+                    >
+                      {([['name','الاسم'],['quantity','الكمية'],['price','السعر']] as const).map(([key, label]) => (
+                        <button
+                          key={key}
+                          onClick={() => {
+                            if (sortBy === key) setSortOrder(o => o === 'asc' ? 'desc' : 'asc');
+                            else { setSortBy(key); setSortOrder('asc'); }
+                            setIsSortOpen(false);
+                          }}
+                          className={cn(
+                            "w-full text-right px-4 py-2.5 text-sm transition-colors flex items-center justify-between",
+                            sortBy === key ? "bg-primary-fixed text-primary font-bold" : "hover:bg-surface-container-low text-on-surface"
+                          )}
+                        >
+                          <span>{label}</span>
+                          {sortBy === key && (sortOrder === 'asc' ? <SortAsc size={14} /> : <SortDesc size={14} />)}
+                        </button>
+                      ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              {/* Active Filter Badge */}
+              {(searchQuery || filterStatus !== 'all') && (
+                <button
+                  onClick={() => { setSearchQuery(''); setFilterStatus('all'); }}
+                  className="flex items-center gap-1.5 px-3 py-2 bg-error-container text-error text-xs font-bold rounded-xl hover:bg-error/10 transition-colors"
+                >
+                  <X size={13} />
+                  مسح الفلاتر
+                </button>
+              )}
             </div>
+
             <div className="flex items-center gap-2 w-full sm:w-auto">
-              <button className="w-full sm:w-auto px-6 py-2.5 bg-white text-on-surface border border-surface-container-high rounded-xl font-bold text-sm hover:bg-surface-container-low transition-all flex items-center justify-center gap-2 shadow-sm">
-                <Download size={18} />
-                تصدير البيانات
+              <button className="w-full sm:w-auto px-5 py-2.5 bg-white text-on-surface border border-surface-container-high rounded-xl font-bold text-sm hover:bg-surface-container-low transition-all flex items-center justify-center gap-2 shadow-sm">
+                <Download size={16} />
+                تصدير
               </button>
-              <button 
+              <button
                 onClick={openAddModal}
                 className="w-full sm:w-auto bg-gradient-to-r from-primary to-primary-container text-white px-6 py-2.5 rounded-xl font-bold flex items-center justify-center gap-2 hover:scale-[1.02] transition-transform shadow-lg shadow-primary/20 active:scale-95"
               >
                 <Plus size={20} />
-                <span className="text-sm">إضافة صنف جديد</span>
+                <span className="text-sm">إضافة صنف</span>
               </button>
             </div>
           </div>
@@ -280,26 +463,56 @@ export default function App() {
               <table className="w-full text-right">
                 <thead className="bg-surface-container-low/50 border-b border-surface-container-high">
                   <tr>
-                    <th className="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider"># الرقم</th>
                     <th className="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">اسم الصنف</th>
                     <th className="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">الرمز (SKU)</th>
-                    <th className="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">الكمية</th>
-                    <th className="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">السعر</th>
+                    <th className="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">
+                      <button onClick={() => { setSortBy('quantity'); setSortOrder(o => sortBy === 'quantity' ? (o === 'asc' ? 'desc' : 'asc') : 'asc'); }} className="flex items-center gap-1 hover:text-primary transition-colors">
+                        الكمية {sortBy === 'quantity' && (sortOrder === 'asc' ? <SortAsc size={13}/> : <SortDesc size={13}/>)}
+                      </button>
+                    </th>
+                    <th className="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">
+                      <button onClick={() => { setSortBy('price'); setSortOrder(o => sortBy === 'price' ? (o === 'asc' ? 'desc' : 'asc') : 'asc'); }} className="flex items-center gap-1 hover:text-primary transition-colors">
+                        السعر {sortBy === 'price' && (sortOrder === 'asc' ? <SortAsc size={13}/> : <SortDesc size={13}/>)}
+                      </button>
+                    </th>
                     <th className="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">الباركود</th>
                     <th className="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">الحالة</th>
                     <th className="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider text-left">العمليات</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-surface-container-low">
-                  {items.map((item) => (
-                    <tr 
-                      key={item.id} 
+                  {displayedItems.length === 0 && (
+                    <tr>
+                      <td colSpan={7} className="px-6 py-16 text-center">
+                        <div className="flex flex-col items-center gap-3 text-on-surface-variant">
+                          <Package size={40} className="opacity-30" />
+                          <p className="text-sm font-medium">لا توجد أصناف تطابق البحث</p>
+                          <button onClick={() => { setSearchQuery(''); setFilterStatus('all'); }} className="text-xs text-primary hover:underline">مسح الفلاتر</button>
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                  {displayedItems.map((item) => (
+                    <motion.tr
+                      key={item.id}
+                      layout
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
                       onClick={() => setViewingItem(item)}
                       className="hover:bg-surface-container-low/30 transition-colors group cursor-pointer"
                     >
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-on-surface-variant/60">{item.id}</td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center gap-3">
+                          <div className={cn(
+                            "w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0",
+                            item.status === 'in-stock' ? "bg-primary-fixed/60" :
+                            item.status === 'low-stock' ? "bg-tertiary-fixed/60" : "bg-error-container"
+                          )}>
+                            <Package size={17} className={cn(
+                              item.status === 'in-stock' ? "text-primary" :
+                              item.status === 'low-stock' ? "text-on-tertiary-fixed-variant" : "text-error"
+                            )} />
+                          </div>
                           <div>
                             <span className="block text-sm font-bold text-on-surface">{item.name}</span>
                             <span className="block text-[10px] text-on-surface-variant">{item.category}</span>
@@ -307,50 +520,57 @@ export default function App() {
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-on-surface-variant font-mono">{item.sku}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-primary">{item.quantity} وحدة</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-bold">{item.price.toLocaleString('ar-SA')} ر.س</td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <Barcode size={20} className="text-on-surface-variant/40" />
+                        <div className="flex items-center gap-1.5">
+                          <span className={cn(
+                            "text-sm font-bold",
+                            item.quantity === 0 ? "text-error" : item.quantity <= 5 ? "text-on-tertiary-fixed-variant" : "text-primary"
+                          )}>{item.quantity}</span>
+                          <span className="text-xs text-on-surface-variant">وحدة</span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-on-surface">{item.price.toLocaleString('ar-SA')} <span className="text-on-surface-variant font-normal text-xs">ر.س</span></td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {item.barcode
+                          ? <span className="font-mono text-xs text-on-surface-variant">{item.barcode}</span>
+                          : <Barcode size={18} className="text-on-surface-variant/30" />}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <StatusBadge status={item.status} />
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-left">
-                        <div className="flex items-center justify-end gap-2">
-                          <button 
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              openEditModal(item);
-                            }}
+                        <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button
+                            onClick={(e) => { e.stopPropagation(); openEditModal(item); }}
                             className="p-2 text-on-surface-variant/60 hover:text-primary hover:bg-primary-fixed/30 rounded-lg transition-all"
                           >
-                            <Edit2 size={18} />
+                            <Edit2 size={16} />
                           </button>
-                          <button 
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDelete(item.id);
-                            }}
+                          <button
+                            onClick={(e) => { e.stopPropagation(); handleDelete(item.id); }}
                             className="p-2 text-on-surface-variant/60 hover:text-error hover:bg-error-container rounded-lg transition-all"
                           >
-                            <Trash2 size={18} />
+                            <Trash2 size={16} />
                           </button>
                         </div>
                       </td>
-                    </tr>
+                    </motion.tr>
                   ))}
                 </tbody>
               </table>
             </div>
-            
+
             <div className="px-6 py-4 bg-surface-container-low/30 border-t border-surface-container-high flex items-center justify-between">
-              <span className="text-xs text-on-surface-variant font-medium">عرض 1-{items.length} من أصل {totalItems.toLocaleString('ar-SA')} صنف</span>
+              <span className="text-xs text-on-surface-variant font-medium">
+                عرض {displayedItems.length} من أصل {totalItems.toLocaleString('ar-SA')} صنف
+                {(searchQuery || filterStatus !== 'all') && <span className="text-primary mr-1">(مصفى)</span>}
+              </span>
               <div className="flex items-center gap-2">
                 <button className="p-2 rounded-lg border border-surface-container-high hover:bg-white transition-all disabled:opacity-50">
-                  <ChevronRight size={20} />
+                  <ChevronRight size={18} />
                 </button>
                 <button className="p-2 rounded-lg border border-surface-container-high bg-white shadow-sm hover:bg-surface-container-low transition-all">
-                  <ChevronLeft size={20} />
+                  <ChevronLeft size={18} />
                 </button>
               </div>
             </div>
@@ -687,5 +907,68 @@ function InputGroup({ label, placeholder, type = "text", value, onChange }: { la
         className="w-full bg-surface-container-high border-none rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary transition-all text-sm outline-none"
       />
     </div>
+  );
+}
+
+function StatCard({
+  label, value, sub, icon, color, onClick, active
+}: {
+  label: string;
+  value: string;
+  sub: string;
+  icon: React.ReactNode;
+  color: 'primary' | 'green' | 'orange' | 'red';
+  onClick?: () => void;
+  active?: boolean;
+}) {
+  const colorMap = {
+    primary: {
+      bg: 'bg-primary-fixed/40',
+      icon: 'text-primary bg-primary-fixed',
+      value: 'text-primary',
+      ring: 'ring-primary',
+    },
+    green: {
+      bg: 'bg-green-50',
+      icon: 'text-green-700 bg-green-100',
+      value: 'text-green-700',
+      ring: 'ring-green-400',
+    },
+    orange: {
+      bg: 'bg-orange-50',
+      icon: 'text-orange-600 bg-orange-100',
+      value: 'text-orange-600',
+      ring: 'ring-orange-400',
+    },
+    red: {
+      bg: 'bg-red-50',
+      icon: 'text-error bg-error-container',
+      value: 'text-error',
+      ring: 'ring-error',
+    },
+  };
+  const c = colorMap[color];
+  return (
+    <motion.div
+      whileHover={onClick ? { scale: 1.02 } : {}}
+      whileTap={onClick ? { scale: 0.98 } : {}}
+      onClick={onClick}
+      className={cn(
+        "bg-white rounded-2xl p-5 border transition-all shadow-sm",
+        onClick ? "cursor-pointer" : "",
+        active ? `ring-2 ${c.ring} border-transparent` : "border-surface-container-high",
+      )}
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <p className="text-xs font-semibold text-on-surface-variant mb-1">{label}</p>
+          <p className={cn("text-3xl font-extrabold", c.value)}>{value}</p>
+          <p className="text-[11px] text-on-surface-variant mt-1.5">{sub}</p>
+        </div>
+        <div className={cn("w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0", c.icon)}>
+          {icon}
+        </div>
+      </div>
+    </motion.div>
   );
 }
