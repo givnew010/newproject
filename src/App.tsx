@@ -238,7 +238,12 @@ export default function App() {
         </header>
 
         {/* Purchases Page */}
-        {currentPage === 'purchases' && <PurchaseInvoices />}
+        {currentPage === 'purchases' && (
+          <PurchaseInvoices
+            inventoryItems={items}
+            onInventoryUpdate={setItems}
+          />
+        )}
 
         {/* Inventory Content */}
         {currentPage === 'inventory' && <div className="p-4 lg:p-8 space-y-8 flex-1">

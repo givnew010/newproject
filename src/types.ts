@@ -22,6 +22,7 @@ export interface Stat {
 
 export interface InvoiceLineItem {
   id: string;
+  inventoryItemId?: string;
   name: string;
   quantity: number;
   price: number;

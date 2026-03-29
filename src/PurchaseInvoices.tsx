@@ -6,15 +6,26 @@
 import React, { useState, useEffect } from 'react';
 import {
   Plus, Filter, ArrowUpDown, Download, Edit2, Trash2, X,
-  ChevronRight, ChevronLeft, FileText, Eye, Trash, PackagePlus
+  ChevronRight, ChevronLeft, FileText, Eye, Trash, PackagePlus, Package
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-import { PurchaseInvoice, InvoiceLineItem } from './types';
+import { PurchaseInvoice, InvoiceLineItem, InventoryItem, ItemStatus } from './types';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
+}
+
+function getStatus(quantity: number): ItemStatus {
+  if (quantity <= 0) return 'out-of-stock';
+  if (quantity <= 5) return 'low-stock';
+  return 'in-stock';
+}
+
+interface Props {
+  inventoryItems: InventoryItem[];
+  onInventoryUpdate: (items: InventoryItem[]) => void;
 }
 
 const TODAY = new Date().toISOString().split('T')[0];
@@ -65,7 +76,7 @@ const emptyForm = (): FormState => ({
   items: [newLineItem()],
 });
 
-export default function PurchaseInvoices() {
+export default function PurchaseInvoices({ inventoryItems, onInventoryUpdate }: Props) {
   const [invoices, setInvoices] = useState<PurchaseInvoice[]>(() => {
     const saved = localStorage.getItem('purchase_invoices');
     if (saved) {
@@ -86,6 +97,17 @@ export default function PurchaseInvoices() {
 
   const computeTotal = (items: InvoiceLineItem[]) =>
     items.reduce((sum, it) => sum + it.total, 0);
+
+  const selectInventoryItem = (index: number, inventoryItemId: string) => {
+    const invItem = inventoryItems.find(it => it.id === inventoryItemId);
+    const updated = form.items.map((it, i) => {
+      if (i !== index) return it;
+      const price = invItem ? invItem.price : it.price;
+      const name = invItem ? invItem.name : it.name;
+      return { ...it, inventoryItemId, name, price, total: Number(it.quantity) * price };
+    });
+    setForm({ ...form, items: updated });
+  };
 
   const updateLineItem = (index: number, field: keyof InvoiceLineItem, value: string | number) => {
     const updated = form.items.map((it, i) => {
@@ -149,6 +171,20 @@ export default function PurchaseInvoices() {
         totalAmount,
       };
       setInvoices([newInv, ...invoices]);
+
+      // Update inventory quantities for linked items
+      const itemsWithInventoryLink = items.filter(it => it.inventoryItemId);
+      if (itemsWithInventoryLink.length > 0) {
+        const updatedInventory = inventoryItems.map(invItem => {
+          const purchased = itemsWithInventoryLink
+            .filter(it => it.inventoryItemId === invItem.id)
+            .reduce((sum, it) => sum + Number(it.quantity), 0);
+          if (purchased === 0) return invItem;
+          const newQty = invItem.quantity + purchased;
+          return { ...invItem, quantity: newQty, status: getStatus(newQty) };
+        });
+        onInventoryUpdate(updatedInventory);
+      }
     }
     setIsModalOpen(false);
   };
@@ -376,13 +412,25 @@ export default function PurchaseInvoices() {
                           {form.items.map((item, index) => (
                             <tr key={item.id} className="bg-white">
                               <td className="px-3 py-2">
-                                <input
-                                  type="text"
-                                  placeholder="اسم الصنف"
-                                  value={item.name}
-                                  onChange={e => updateLineItem(index, 'name', e.target.value)}
-                                  className="w-full bg-surface-container-high rounded-lg px-2.5 py-1.5 text-sm outline-none focus:ring-2 focus:ring-primary transition-all border-none"
-                                />
+                                <select
+                                  value={item.inventoryItemId ?? ''}
+                                  onChange={e => {
+                                    if (e.target.value === '') {
+                                      updateLineItem(index, 'name', '');
+                                      updateLineItem(index, 'inventoryItemId' as keyof InvoiceLineItem, '');
+                                    } else {
+                                      selectInventoryItem(index, e.target.value);
+                                    }
+                                  }}
+                                  className="w-full bg-surface-container-high rounded-lg px-2.5 py-1.5 text-sm outline-none focus:ring-2 focus:ring-primary transition-all border-none appearance-none"
+                                >
+                                  <option value="">— اختر صنفاً من المخزون —</option>
+                                  {inventoryItems.map(inv => (
+                                    <option key={inv.id} value={inv.id}>
+                                      {inv.name} ({inv.sku}) — متوفر: {inv.quantity}
+                                    </option>
+                                  ))}
+                                </select>
                               </td>
                               <td className="px-3 py-2">
                                 <input
@@ -438,19 +486,27 @@ export default function PurchaseInvoices() {
               </div>
 
               {/* Modal Footer */}
-              <div className="p-4 sm:p-5 border-t border-surface-container-low flex items-center gap-3 flex-shrink-0">
-                <button
-                  onClick={handleSave}
-                  className="flex-1 bg-gradient-to-r from-primary to-primary-container text-white py-2.5 rounded-lg font-bold hover:scale-[1.02] transition-all shadow-lg shadow-primary/20 active:scale-95 text-sm"
-                >
-                  حفظ الفاتورة
-                </button>
-                <button
-                  onClick={() => setIsModalOpen(false)}
-                  className="flex-1 bg-surface-container-high text-on-surface py-2.5 rounded-lg font-bold hover:bg-surface-container-highest transition-all active:scale-95 text-sm"
-                >
-                  إلغاء
-                </button>
+              <div className="p-4 sm:p-5 border-t border-surface-container-low flex-shrink-0 space-y-3">
+                {!editingId && form.items.some(it => it.inventoryItemId) && (
+                  <div className="flex items-center gap-2 bg-primary-fixed/30 text-primary rounded-lg px-3 py-2 text-xs font-medium">
+                    <Package size={14} />
+                    سيتم تحديث كميات الأصناف المرتبطة في المخزون تلقائياً عند الحفظ
+                  </div>
+                )}
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={handleSave}
+                    className="flex-1 bg-gradient-to-r from-primary to-primary-container text-white py-2.5 rounded-lg font-bold hover:scale-[1.02] transition-all shadow-lg shadow-primary/20 active:scale-95 text-sm"
+                  >
+                    حفظ الفاتورة
+                  </button>
+                  <button
+                    onClick={() => setIsModalOpen(false)}
+                    className="flex-1 bg-surface-container-high text-on-surface py-2.5 rounded-lg font-bold hover:bg-surface-container-highest transition-all active:scale-95 text-sm"
+                  >
+                    إلغاء
+                  </button>
+                </div>
               </div>
             </motion.div>
           </div>
