@@ -20,8 +20,9 @@ import PurchaseInvoices from './PurchaseInvoices';
 import SalesInvoices from './SalesInvoices';
 import Dashboard from './Dashboard';
 import Reports from './Reports';
+import Warehouses from './Warehouses';
 
-type Page = 'dashboard' | 'inventory' | 'purchases' | 'sales' | 'reports';
+type Page = 'dashboard' | 'inventory' | 'purchases' | 'sales' | 'reports' | 'warehouses';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -231,7 +232,7 @@ export default function App() {
             <p className="text-[9px] font-bold text-on-surface-variant/50 uppercase tracking-widest">تحليلات</p>
           </div>
           <NavItem icon={<BarChart3 size={20} />} label="التقارير" active={currentPage === 'reports'} onClick={() => { setCurrentPage('reports'); setIsSidebarOpen(window.innerWidth >= 1024); }} />
-          <NavItem icon={<Warehouse size={20} />} label="المخازن" />
+          <NavItem icon={<Warehouse size={20} />} label="المخازن" active={currentPage === 'warehouses'} onClick={() => { setCurrentPage('warehouses'); setIsSidebarOpen(window.innerWidth >= 1024); }} />
           <NavItem icon={<Settings size={20} />} label="الإعدادات" />
         </nav>
 
@@ -263,6 +264,7 @@ export default function App() {
                 purchases: 'فواتير المشتريات',
                 sales: 'فواتير المبيعات',
                 reports: 'التقارير والتحليلات',
+                warehouses: 'إدارة المخازن',
               }[currentPage]}
             </h2>
             
@@ -326,6 +328,11 @@ export default function App() {
         {/* Reports Page */}
         {currentPage === 'reports' && (
           <Reports inventoryItems={items} />
+        )}
+
+        {/* Warehouses Page */}
+        {currentPage === 'warehouses' && (
+          <Warehouses inventoryItems={items} />
         )}
 
         {/* Inventory Content */}

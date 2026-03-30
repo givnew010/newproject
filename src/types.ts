@@ -48,3 +48,14 @@ export interface SalesInvoice {
   items: InvoiceLineItem[];
   totalAmount: number;
 }
+
+export interface Warehouse {
+  id: string;
+  name: string;
+  location: string;
+  manager: string;
+  phone: string;
+  capacity: number;
+  notes?: string;
+  color: 'blue' | 'green' | 'orange' | 'purple' | 'red' | 'teal';
+}
