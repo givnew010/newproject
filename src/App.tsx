@@ -6,7 +6,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { 
   Search, Bell, Settings, LayoutDashboard, Package, Warehouse, 
-  BarChart3, Plus, HelpCircle, ShoppingCart,
+  BarChart3, Plus, HelpCircle, ShoppingCart, ShoppingBag,
   Filter, ArrowUpDown, Download, Barcode, Edit2, Trash2, X, 
   ScanBarcode, ChevronRight, ChevronLeft, Menu,
   TrendingUp, AlertTriangle, XCircle, Layers,
@@ -17,8 +17,11 @@ import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { InventoryItem, ItemStatus } from './types';
 import PurchaseInvoices from './PurchaseInvoices';
+import SalesInvoices from './SalesInvoices';
+import Dashboard from './Dashboard';
+import Reports from './Reports';
 
-type Page = 'inventory' | 'purchases';
+type Page = 'dashboard' | 'inventory' | 'purchases' | 'sales' | 'reports';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -69,7 +72,7 @@ export default function App() {
     }
     return INITIAL_ITEMS;
   });
-  const [currentPage, setCurrentPage] = useState<Page>('inventory');
+  const [currentPage, setCurrentPage] = useState<Page>('dashboard');
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [formData, setFormData] = useState<Partial<InventoryItem>>({});
@@ -217,11 +220,18 @@ export default function App() {
         </div>
 
         <nav className="flex-1 px-4 space-y-1">
-          <NavItem icon={<LayoutDashboard size={20} />} label="لوحة التحكم" />
-          <NavItem icon={<Package size={20} />} label="الأصناف" active={currentPage === 'inventory'} onClick={() => setCurrentPage('inventory')} />
-          <NavItem icon={<ShoppingCart size={20} />} label="فواتير المشتريات" active={currentPage === 'purchases'} onClick={() => setCurrentPage('purchases')} />
+          <NavItem icon={<LayoutDashboard size={20} />} label="لوحة التحكم" active={currentPage === 'dashboard'} onClick={() => { setCurrentPage('dashboard'); setIsSidebarOpen(window.innerWidth >= 1024); }} />
+          <NavItem icon={<Package size={20} />} label="الأصناف" active={currentPage === 'inventory'} onClick={() => { setCurrentPage('inventory'); setIsSidebarOpen(window.innerWidth >= 1024); }} />
+          <div className="px-3 py-1">
+            <p className="text-[9px] font-bold text-on-surface-variant/50 uppercase tracking-widest">الفواتير</p>
+          </div>
+          <NavItem icon={<ShoppingBag size={20} />} label="فواتير المبيعات" active={currentPage === 'sales'} onClick={() => { setCurrentPage('sales'); setIsSidebarOpen(window.innerWidth >= 1024); }} />
+          <NavItem icon={<ShoppingCart size={20} />} label="فواتير المشتريات" active={currentPage === 'purchases'} onClick={() => { setCurrentPage('purchases'); setIsSidebarOpen(window.innerWidth >= 1024); }} />
+          <div className="px-3 py-1">
+            <p className="text-[9px] font-bold text-on-surface-variant/50 uppercase tracking-widest">تحليلات</p>
+          </div>
+          <NavItem icon={<BarChart3 size={20} />} label="التقارير" active={currentPage === 'reports'} onClick={() => { setCurrentPage('reports'); setIsSidebarOpen(window.innerWidth >= 1024); }} />
           <NavItem icon={<Warehouse size={20} />} label="المخازن" />
-          <NavItem icon={<BarChart3 size={20} />} label="التقارير" />
           <NavItem icon={<Settings size={20} />} label="الإعدادات" />
         </nav>
 
@@ -247,7 +257,13 @@ export default function App() {
               <Menu size={24} />
             </button>
             <h2 className="font-headline font-extrabold text-primary text-xl lg:text-2xl">
-              {currentPage === 'inventory' ? 'إدارة الأصناف' : 'فواتير المشتريات'}
+              {{
+                dashboard: 'لوحة التحكم',
+                inventory: 'إدارة الأصناف',
+                purchases: 'فواتير المشتريات',
+                sales: 'فواتير المبيعات',
+                reports: 'التقارير والتحليلات',
+              }[currentPage]}
             </h2>
             
             {currentPage === 'inventory' && (
@@ -283,12 +299,33 @@ export default function App() {
           </div>
         </header>
 
+        {/* Dashboard Page */}
+        {currentPage === 'dashboard' && (
+          <Dashboard
+            inventoryItems={items}
+            onNavigate={(page) => setCurrentPage(page as Page)}
+          />
+        )}
+
         {/* Purchases Page */}
         {currentPage === 'purchases' && (
           <PurchaseInvoices
             inventoryItems={items}
             onInventoryUpdate={setItems}
           />
+        )}
+
+        {/* Sales Page */}
+        {currentPage === 'sales' && (
+          <SalesInvoices
+            inventoryItems={items}
+            onInventoryUpdate={setItems}
+          />
+        )}
+
+        {/* Reports Page */}
+        {currentPage === 'reports' && (
+          <Reports inventoryItems={items} />
         )}
 
         {/* Inventory Content */}

@@ -38,3 +38,13 @@ export interface PurchaseInvoice {
   items: InvoiceLineItem[];
   totalAmount: number;
 }
+
+export interface SalesInvoice {
+  id: string;
+  invoiceNumber: string;
+  customer: string;
+  date: string;
+  notes?: string;
+  items: InvoiceLineItem[];
+  totalAmount: number;
+}
