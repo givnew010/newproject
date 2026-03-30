@@ -1,12 +1,8 @@
-/**
- * @license
- * SPDX-License-Identifier: Apache-2.0
- */
-
 import React, { useState, useEffect } from 'react';
 import {
   Plus, Filter, ArrowUpDown, Download, Edit2, Trash2, X,
-  ChevronRight, ChevronLeft, FileText, Eye, Trash, PackagePlus, Package
+  ChevronRight, ChevronLeft, FileText, Eye, Trash, PackagePlus,
+  Package, ShoppingCart, TrendingDown, Calendar
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { clsx, type ClassValue } from 'clsx';
@@ -76,12 +72,27 @@ const emptyForm = (): FormState => ({
   items: [newLineItem()],
 });
 
+function FieldGroup({ label, placeholder, type = 'text', value, onChange }: {
+  label: string; placeholder: string; type?: string; value: string; onChange: (v: string) => void;
+}) {
+  return (
+    <div className="space-y-1.5">
+      <label className="text-xs font-bold text-on-surface-variant">{label}</label>
+      <input
+        type={type}
+        placeholder={placeholder}
+        value={value}
+        onChange={e => onChange(e.target.value)}
+        className="w-full bg-surface-container-low border border-surface-container-high rounded-xl px-3 py-2.5 focus:ring-2 focus:ring-primary focus:border-primary transition-all text-sm outline-none"
+      />
+    </div>
+  );
+}
+
 export default function PurchaseInvoices({ inventoryItems, onInventoryUpdate }: Props) {
   const [invoices, setInvoices] = useState<PurchaseInvoice[]>(() => {
     const saved = localStorage.getItem('purchase_invoices');
-    if (saved) {
-      try { return JSON.parse(saved); } catch { /* ignore */ }
-    }
+    if (saved) { try { return JSON.parse(saved); } catch { /* ignore */ } }
     return INITIAL_INVOICES;
   });
 
@@ -95,8 +106,8 @@ export default function PurchaseInvoices({ inventoryItems, onInventoryUpdate }: 
     localStorage.setItem('purchase_invoices', JSON.stringify(invoices));
   }, [invoices]);
 
-  const computeTotal = (items: InvoiceLineItem[]) =>
-    items.reduce((sum, it) => sum + it.total, 0);
+  const totalCost = invoices.reduce((s, inv) => s + inv.totalAmount, 0);
+  const avgInvoice = invoices.length > 0 ? Math.round(totalCost / invoices.length) : 0;
 
   const selectInventoryItem = (index: number, inventoryItemId: string) => {
     const invItem = inventoryItems.find(it => it.id === inventoryItemId);
@@ -122,37 +133,22 @@ export default function PurchaseInvoices({ inventoryItems, onInventoryUpdate }: 
   };
 
   const addLineItem = () => setForm({ ...form, items: [...form.items, newLineItem()] });
-
   const removeLineItem = (index: number) => {
     if (form.items.length === 1) return;
     setForm({ ...form, items: form.items.filter((_, i) => i !== index) });
   };
 
-  const openAdd = () => {
-    setEditingId(null);
-    setForm(emptyForm());
-    setIsModalOpen(true);
-  };
-
+  const openAdd = () => { setEditingId(null); setForm(emptyForm()); setIsModalOpen(true); };
   const openEdit = (inv: PurchaseInvoice) => {
     setEditingId(inv.id);
-    setForm({
-      invoiceNumber: inv.invoiceNumber,
-      supplier: inv.supplier,
-      date: inv.date,
-      notes: inv.notes ?? '',
-      items: inv.items.map(it => ({ ...it })),
-    });
+    setForm({ invoiceNumber: inv.invoiceNumber, supplier: inv.supplier, date: inv.date, notes: inv.notes ?? '', items: inv.items.map(it => ({ ...it })) });
     setIsModalOpen(true);
   };
 
   const handleSave = () => {
     if (!form.invoiceNumber || !form.supplier || !form.date) return;
-    const items = form.items.map(it => ({
-      ...it,
-      total: Number(it.quantity) * Number(it.price),
-    }));
-    const totalAmount = computeTotal(items);
+    const items = form.items.map(it => ({ ...it, total: Number(it.quantity) * Number(it.price) }));
+    const totalAmount = items.reduce((s, it) => s + it.total, 0);
 
     if (editingId) {
       setInvoices(invoices.map(inv =>
@@ -163,22 +159,14 @@ export default function PurchaseInvoices({ inventoryItems, onInventoryUpdate }: 
     } else {
       const newInv: PurchaseInvoice = {
         id: Math.random().toString(36).substr(2, 9),
-        invoiceNumber: form.invoiceNumber,
-        supplier: form.supplier,
-        date: form.date,
-        notes: form.notes,
-        items,
-        totalAmount,
+        invoiceNumber: form.invoiceNumber, supplier: form.supplier,
+        date: form.date, notes: form.notes, items, totalAmount,
       };
       setInvoices([newInv, ...invoices]);
-
-      // Update inventory quantities for linked items
-      const itemsWithInventoryLink = items.filter(it => it.inventoryItemId);
-      if (itemsWithInventoryLink.length > 0) {
+      const linkedItems = items.filter(it => it.inventoryItemId);
+      if (linkedItems.length > 0) {
         const updatedInventory = inventoryItems.map(invItem => {
-          const purchased = itemsWithInventoryLink
-            .filter(it => it.inventoryItemId === invItem.id)
-            .reduce((sum, it) => sum + Number(it.quantity), 0);
+          const purchased = linkedItems.filter(it => it.inventoryItemId === invItem.id).reduce((s, it) => s + Number(it.quantity), 0);
           if (purchased === 0) return invItem;
           const newQty = invItem.quantity + purchased;
           return { ...invItem, quantity: newQty, status: getStatus(newQty) };
@@ -197,284 +185,288 @@ export default function PurchaseInvoices({ inventoryItems, onInventoryUpdate }: 
   };
 
   return (
-    <div className="p-4 lg:p-8 space-y-8 flex-1">
+    <div className="p-4 lg:p-6 space-y-5">
+
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div className="bg-gradient-to-br from-violet-600 to-violet-700 rounded-2xl p-4 shadow-sm">
+          <div className="flex items-start justify-between mb-2">
+            <p className="text-xs font-semibold text-white/80">إجمالي فواتير المشتريات</p>
+            <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0">
+              <FileText size={18} className="text-white" />
+            </div>
+          </div>
+          <p className="text-3xl font-extrabold text-white font-mono">{invoices.length}</p>
+          <p className="text-xs text-white/70 mt-1">فاتورة مسجلة</p>
+        </div>
+        <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-2xl p-4 shadow-sm">
+          <div className="flex items-start justify-between mb-2">
+            <p className="text-xs font-semibold text-white/80">إجمالي التكاليف</p>
+            <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0">
+              <TrendingDown size={18} className="text-white" />
+            </div>
+          </div>
+          <p className="text-2xl font-extrabold text-white font-mono">{totalCost.toLocaleString('ar-SA')}</p>
+          <p className="text-xs text-white/70 mt-1">ريال سعودي</p>
+        </div>
+        <div className="bg-gradient-to-br from-slate-600 to-slate-700 rounded-2xl p-4 shadow-sm">
+          <div className="flex items-start justify-between mb-2">
+            <p className="text-xs font-semibold text-white/80">متوسط قيمة الفاتورة</p>
+            <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0">
+              <ShoppingCart size={18} className="text-white" />
+            </div>
+          </div>
+          <p className="text-2xl font-extrabold text-white font-mono">{avgInvoice.toLocaleString('ar-SA')}</p>
+          <p className="text-xs text-white/70 mt-1">ريال سعودي</p>
+        </div>
+      </div>
+
       {/* Actions Bar */}
-      <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
+      <div className="flex flex-col sm:flex-row gap-3 items-center justify-between">
         <div className="flex items-center gap-2 w-full sm:w-auto">
-          <button className="bg-white px-4 py-2.5 rounded-xl text-sm font-medium text-on-surface-variant flex items-center gap-2 border border-surface-container-high hover:bg-surface-container-low transition-colors shadow-sm">
-            <Filter size={18} />
-            <span>تصفية</span>
+          <button className="bg-white px-4 py-2 rounded-xl text-sm font-medium text-on-surface-variant flex items-center gap-2 border border-surface-container-high hover:bg-surface-container-low transition-colors shadow-sm">
+            <Filter size={15} /><span>تصفية</span>
           </button>
-          <button className="bg-white px-4 py-2.5 rounded-xl text-sm font-medium text-on-surface-variant flex items-center gap-2 border border-surface-container-high hover:bg-surface-container-low transition-colors shadow-sm">
-            <ArrowUpDown size={18} />
-            <span>ترتيب</span>
+          <button className="bg-white px-4 py-2 rounded-xl text-sm font-medium text-on-surface-variant flex items-center gap-2 border border-surface-container-high hover:bg-surface-container-low transition-colors shadow-sm">
+            <ArrowUpDown size={15} /><span>ترتيب</span>
           </button>
         </div>
         <div className="flex items-center gap-2 w-full sm:w-auto">
-          <button className="w-full sm:w-auto px-6 py-2.5 bg-white text-on-surface border border-surface-container-high rounded-xl font-bold text-sm hover:bg-surface-container-low transition-all flex items-center justify-center gap-2 shadow-sm">
-            <Download size={18} />
-            تصدير البيانات
+          <button className="w-full sm:w-auto px-4 py-2 bg-white text-on-surface border border-surface-container-high rounded-xl font-bold text-sm hover:bg-surface-container-low transition-all flex items-center justify-center gap-2 shadow-sm">
+            <Download size={15} />تصدير
           </button>
           <button
             onClick={openAdd}
-            className="w-full sm:w-auto bg-gradient-to-r from-primary to-primary-container text-white px-6 py-2.5 rounded-xl font-bold flex items-center justify-center gap-2 hover:scale-[1.02] transition-transform shadow-lg shadow-primary/20 active:scale-95"
+            className="w-full sm:w-auto bg-primary text-white px-5 py-2 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-primary-dark transition-all shadow-lg shadow-blue-500/20 active:scale-95"
           >
-            <Plus size={20} />
-            <span className="text-sm">إضافة فاتورة جديدة</span>
+            <Plus size={18} />
+            <span className="text-sm">فاتورة جديدة</span>
           </button>
         </div>
       </div>
 
       {/* Invoices Table */}
-      <div className="bg-surface-container-lowest rounded-2xl overflow-hidden shadow-sm border border-surface-container-low">
+      <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-surface-container-high">
         <div className="overflow-x-auto">
           <table className="w-full text-right">
-            <thead className="bg-surface-container-low/50 border-b border-surface-container-high">
-              <tr>
-                <th className="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">رقم الفاتورة</th>
-                <th className="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">المورد</th>
-                <th className="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">التاريخ</th>
-                <th className="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">عدد الأصناف</th>
-                <th className="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">إجمالي الفاتورة</th>
-                <th className="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider text-left">العمليات</th>
+            <thead>
+              <tr className="bg-surface-container-low/80 border-b border-surface-container-high">
+                <th className="px-5 py-3.5 text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">رقم الفاتورة</th>
+                <th className="px-5 py-3.5 text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">المورد</th>
+                <th className="px-5 py-3.5 text-[11px] font-bold text-on-surface-variant uppercase tracking-wider hidden sm:table-cell">التاريخ</th>
+                <th className="px-5 py-3.5 text-[11px] font-bold text-on-surface-variant uppercase tracking-wider hidden md:table-cell">الأصناف</th>
+                <th className="px-5 py-3.5 text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">الإجمالي</th>
+                <th className="px-5 py-3.5 text-[11px] font-bold text-on-surface-variant uppercase tracking-wider text-left">إجراءات</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-surface-container-low">
-              {invoices.length === 0 && (
+            <tbody>
+              {invoices.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-16 text-center text-on-surface-variant text-sm">
-                    لا توجد فواتير مشتريات بعد. اضغط "إضافة فاتورة جديدة" للبدء.
-                  </td>
-                </tr>
-              )}
-              {invoices.map((inv) => (
-                <tr
-                  key={inv.id}
-                  onClick={() => setViewingInvoice(inv)}
-                  className="hover:bg-surface-container-low/30 transition-colors group cursor-pointer"
-                >
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-lg bg-primary-fixed/40 flex items-center justify-center">
-                        <FileText size={15} className="text-primary" />
+                  <td colSpan={6} className="px-5 py-20 text-center">
+                    <div className="flex flex-col items-center gap-3 text-on-surface-variant">
+                      <div className="w-14 h-14 rounded-2xl bg-violet-50 flex items-center justify-center">
+                        <ShoppingCart size={28} className="text-violet-400" />
                       </div>
-                      <span className="text-sm font-bold text-primary font-mono">{inv.invoiceNumber}</span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-on-surface">{inv.supplier}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-on-surface-variant">{inv.date}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="inline-flex items-center gap-1 bg-surface-container-high text-on-surface-variant text-xs font-bold px-3 py-1 rounded-full">
-                      {inv.items.length} صنف
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-on-surface">
-                    {inv.totalAmount.toLocaleString('ar-SA')} ر.س
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-left">
-                    <div className="flex items-center justify-end gap-2">
-                      <button
-                        onClick={(e) => { e.stopPropagation(); setViewingInvoice(inv); }}
-                        className="p-2 text-on-surface-variant/60 hover:text-primary hover:bg-primary-fixed/30 rounded-lg transition-all"
-                      >
-                        <Eye size={18} />
-                      </button>
-                      <button
-                        onClick={(e) => { e.stopPropagation(); openEdit(inv); }}
-                        className="p-2 text-on-surface-variant/60 hover:text-primary hover:bg-primary-fixed/30 rounded-lg transition-all"
-                      >
-                        <Edit2 size={18} />
-                      </button>
-                      <button
-                        onClick={(e) => { e.stopPropagation(); setInvoiceToDelete(inv.id); }}
-                        className="p-2 text-on-surface-variant/60 hover:text-error hover:bg-error-container rounded-lg transition-all"
-                      >
-                        <Trash2 size={18} />
+                      <p className="text-sm font-medium">لا توجد فواتير مشتريات بعد</p>
+                      <button onClick={openAdd} className="text-xs text-primary hover:underline font-bold">
+                        أضف أول فاتورة مشتريات
                       </button>
                     </div>
                   </td>
                 </tr>
-              ))}
+              ) : (
+                invoices.map((inv, idx) => (
+                  <motion.tr
+                    key={inv.id}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: idx * 0.04 }}
+                    onClick={() => setViewingInvoice(inv)}
+                    className="border-b border-surface-container-low last:border-0 hover:bg-violet-50/40 transition-colors group cursor-pointer"
+                  >
+                    <td className="px-5 py-3.5">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 rounded-xl bg-violet-50 flex items-center justify-center flex-shrink-0">
+                          <FileText size={14} className="text-violet-600" />
+                        </div>
+                        <span className="text-sm font-bold text-violet-700 font-mono">{inv.invoiceNumber}</span>
+                      </div>
+                    </td>
+                    <td className="px-5 py-3.5">
+                      <span className="text-sm font-medium text-on-surface">{inv.supplier}</span>
+                    </td>
+                    <td className="px-5 py-3.5 hidden sm:table-cell">
+                      <div className="flex items-center gap-1.5 text-on-surface-variant">
+                        <Calendar size={12} />
+                        <span className="text-sm">{inv.date}</span>
+                      </div>
+                    </td>
+                    <td className="px-5 py-3.5 hidden md:table-cell">
+                      <span className="inline-flex items-center gap-1 bg-surface-container-low text-on-surface-variant text-xs font-bold px-2.5 py-1 rounded-full">
+                        <Package size={11} />{inv.items.length} صنف
+                      </span>
+                    </td>
+                    <td className="px-5 py-3.5">
+                      <span className="text-sm font-extrabold text-violet-700 font-mono">{inv.totalAmount.toLocaleString('ar-SA')}</span>
+                      <span className="text-xs text-on-surface-variant mr-1">ر.س</span>
+                    </td>
+                    <td className="px-5 py-3.5 text-left">
+                      <div className="flex items-center justify-end gap-1.5">
+                        <button onClick={e => { e.stopPropagation(); setViewingInvoice(inv); }} className="p-2 text-on-surface-variant/50 hover:text-violet-600 hover:bg-violet-50 rounded-xl transition-all">
+                          <Eye size={15} />
+                        </button>
+                        <button onClick={e => { e.stopPropagation(); openEdit(inv); }} className="p-2 text-on-surface-variant/50 hover:text-primary hover:bg-primary-fixed/50 rounded-xl transition-all">
+                          <Edit2 size={15} />
+                        </button>
+                        <button onClick={e => { e.stopPropagation(); setInvoiceToDelete(inv.id); }} className="p-2 text-on-surface-variant/50 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all">
+                          <Trash2 size={15} />
+                        </button>
+                      </div>
+                    </td>
+                  </motion.tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
-
-        <div className="px-6 py-4 bg-surface-container-low/30 border-t border-surface-container-high flex items-center justify-between">
-          <span className="text-xs text-on-surface-variant font-medium">
-            عرض 1-{invoices.length} من أصل {invoices.length.toLocaleString('ar-SA')} فاتورة
-          </span>
-          <div className="flex items-center gap-2">
-            <button className="p-2 rounded-lg border border-surface-container-high hover:bg-white transition-all disabled:opacity-50">
-              <ChevronRight size={20} />
-            </button>
-            <button className="p-2 rounded-lg border border-surface-container-high bg-white shadow-sm hover:bg-surface-container-low transition-all">
-              <ChevronLeft size={20} />
-            </button>
+        {invoices.length > 0 && (
+          <div className="px-5 py-3.5 bg-surface-container-low/50 border-t border-surface-container-high flex items-center justify-between">
+            <span className="text-xs text-on-surface-variant font-medium">
+              {invoices.length} فاتورة مشتريات
+            </span>
+            <div className="flex items-center gap-1.5">
+              <button className="p-1.5 rounded-lg border border-surface-container-high hover:bg-white transition-all"><ChevronRight size={16} /></button>
+              <button className="p-1.5 rounded-lg border border-surface-container-high bg-white shadow-sm hover:bg-surface-container-low transition-all"><ChevronLeft size={16} /></button>
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
-      {/* Add / Edit Modal */}
+      {/* Add/Edit Modal */}
       <AnimatePresence>
         {isModalOpen && (
           <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 sm:p-6">
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               onClick={() => setIsModalOpen(false)}
-              className="absolute inset-0 bg-on-background/20 backdrop-blur-sm"
+              className="absolute inset-0 bg-black/30 backdrop-blur-sm"
             />
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              exit={{ opacity: 0, scale: 0.95 }}
               transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              className="relative z-[70] w-full max-w-2xl max-h-[92vh] bg-surface-container-lowest shadow-2xl flex flex-col rounded-3xl overflow-hidden"
+              className="relative z-[70] w-full max-w-2xl max-h-[92vh] bg-white shadow-2xl flex flex-col rounded-3xl overflow-hidden"
             >
-              {/* Modal Header */}
-              <div className="px-5 py-4 border-b border-surface-container-low flex items-center justify-between flex-shrink-0">
+              <div className="px-5 py-4 border-b border-surface-container-low flex items-center justify-between flex-shrink-0 bg-gradient-to-l from-violet-50 to-white">
                 <div>
-                  <h2 className="text-lg font-bold text-on-surface">
-                    {editingId ? 'تعديل فاتورة المشتريات' : 'إضافة فاتورة مشتريات جديدة'}
+                  <h2 className="text-base font-extrabold text-on-surface">
+                    {editingId ? 'تعديل فاتورة المشتريات' : 'فاتورة مشتريات جديدة'}
                   </h2>
-                  <p className="text-[11px] text-on-surface-variant mt-0.5">أدخل بيانات الفاتورة والأصناف بدقة</p>
+                  <p className="text-[11px] text-on-surface-variant mt-0.5">أدخل بيانات الفاتورة والأصناف</p>
                 </div>
-                <button
-                  onClick={() => setIsModalOpen(false)}
-                  className="p-1.5 hover:bg-surface-container-low rounded-full transition-colors"
-                >
-                  <X size={20} />
+                <button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-surface-container-low rounded-xl transition-colors">
+                  <X size={18} />
                 </button>
               </div>
 
-              {/* Modal Body */}
-              <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-5">
-                {/* Invoice Header Fields */}
+              <div className="flex-1 overflow-y-auto p-5 space-y-5">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <FieldGroup
-                    label="رقم الفاتورة *"
-                    placeholder="مثال: PO-2025-003"
-                    value={form.invoiceNumber}
-                    onChange={v => setForm({ ...form, invoiceNumber: v })}
-                  />
-                  <FieldGroup
-                    label="المورد *"
-                    placeholder="اسم الشركة أو المورد"
-                    value={form.supplier}
-                    onChange={v => setForm({ ...form, supplier: v })}
-                  />
-                  <FieldGroup
-                    label="تاريخ الفاتورة *"
-                    placeholder=""
-                    type="date"
-                    value={form.date}
-                    onChange={v => setForm({ ...form, date: v })}
-                  />
-                  <div className="space-y-1">
-                    <label className="text-[11px] font-bold text-on-surface-variant">ملاحظة</label>
+                  <FieldGroup label="رقم الفاتورة *" placeholder="مثال: PO-2025-003" value={form.invoiceNumber} onChange={v => setForm({ ...form, invoiceNumber: v })} />
+                  <FieldGroup label="المورد *" placeholder="اسم الشركة أو المورد" value={form.supplier} onChange={v => setForm({ ...form, supplier: v })} />
+                  <FieldGroup label="تاريخ الفاتورة *" placeholder="" type="date" value={form.date} onChange={v => setForm({ ...form, date: v })} />
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-on-surface-variant">ملاحظات</label>
                     <textarea
                       rows={2}
                       placeholder="أي ملاحظات تتعلق بالفاتورة..."
                       value={form.notes}
                       onChange={e => setForm({ ...form, notes: e.target.value })}
-                      className="w-full bg-surface-container-high border-none rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary transition-all text-sm outline-none resize-none"
+                      className="w-full bg-surface-container-low border border-surface-container-high rounded-xl px-3 py-2.5 focus:ring-2 focus:ring-primary transition-all text-sm outline-none resize-none"
                     />
                   </div>
                 </div>
 
-                {/* Line Items Table */}
+                {/* Line Items */}
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <h3 className="text-sm font-bold text-on-surface">جدول الأصناف</h3>
+                    <h3 className="text-sm font-extrabold text-on-surface">جدول الأصناف</h3>
                     <button
                       onClick={addLineItem}
-                      className="flex items-center gap-1.5 text-xs font-bold text-primary bg-primary-fixed/30 hover:bg-primary-fixed/50 px-3 py-1.5 rounded-lg transition-colors"
+                      className="flex items-center gap-1.5 text-xs font-bold text-violet-700 bg-violet-50 hover:bg-violet-100 px-3 py-1.5 rounded-xl transition-colors border border-violet-200"
                     >
-                      <PackagePlus size={15} />
-                      إضافة صنف
+                      <PackagePlus size={14} />إضافة صنف
                     </button>
                   </div>
 
                   <div className="rounded-xl border border-surface-container-high overflow-hidden">
                     <div className="overflow-x-auto">
                       <table className="w-full text-right text-sm">
-                        <thead className="bg-surface-container-low/60 border-b border-surface-container-high">
-                          <tr>
-                            <th className="px-3 py-2.5 text-[11px] font-bold text-on-surface-variant">اسم الصنف</th>
+                        <thead>
+                          <tr className="bg-surface-container-low/80 border-b border-surface-container-high">
+                            <th className="px-3 py-2.5 text-[11px] font-bold text-on-surface-variant">الصنف</th>
                             <th className="px-3 py-2.5 text-[11px] font-bold text-on-surface-variant w-24">الكمية</th>
-                            <th className="px-3 py-2.5 text-[11px] font-bold text-on-surface-variant w-28">السعر (ر.س)</th>
+                            <th className="px-3 py-2.5 text-[11px] font-bold text-on-surface-variant w-28">السعر</th>
                             <th className="px-3 py-2.5 text-[11px] font-bold text-on-surface-variant w-28">الإجمالي</th>
-                            <th className="px-3 py-2.5 w-10"></th>
+                            <th className="px-3 py-2.5 w-10" />
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-surface-container-low">
                           {form.items.map((item, index) => (
-                            <tr key={item.id} className="bg-white">
+                            <tr key={item.id} className="bg-white hover:bg-surface-container-low/30 transition-colors">
                               <td className="px-3 py-2">
                                 <select
                                   value={item.inventoryItemId ?? ''}
                                   onChange={e => {
                                     if (e.target.value === '') {
                                       updateLineItem(index, 'name', '');
-                                      updateLineItem(index, 'inventoryItemId' as keyof InvoiceLineItem, '');
                                     } else {
                                       selectInventoryItem(index, e.target.value);
                                     }
                                   }}
-                                  className="w-full bg-surface-container-high rounded-lg px-2.5 py-1.5 text-sm outline-none focus:ring-2 focus:ring-primary transition-all border-none appearance-none"
+                                  className="w-full bg-surface-container-low border border-surface-container-high rounded-lg px-2.5 py-1.5 text-sm outline-none focus:ring-2 focus:ring-primary transition-all appearance-none"
                                 >
-                                  <option value="">— اختر صنفاً من المخزون —</option>
+                                  <option value="">— اختر صنفاً —</option>
                                   {inventoryItems.map(inv => (
                                     <option key={inv.id} value={inv.id}>
-                                      {inv.name} ({inv.sku}) — متوفر: {inv.quantity}
+                                      {inv.name} ({inv.sku})
                                     </option>
                                   ))}
                                 </select>
                               </td>
                               <td className="px-3 py-2">
                                 <input
-                                  type="number"
-                                  min={1}
-                                  value={item.quantity}
+                                  type="number" min={1} value={item.quantity}
                                   onChange={e => updateLineItem(index, 'quantity', Number(e.target.value))}
-                                  className="w-full bg-surface-container-high rounded-lg px-2.5 py-1.5 text-sm outline-none focus:ring-2 focus:ring-primary transition-all border-none text-center"
+                                  className="w-full bg-surface-container-low border border-surface-container-high rounded-lg px-2.5 py-1.5 text-sm outline-none focus:ring-2 focus:ring-primary transition-all text-center"
                                 />
                               </td>
                               <td className="px-3 py-2">
                                 <input
-                                  type="number"
-                                  min={0}
-                                  step={0.01}
-                                  value={item.price}
+                                  type="number" min={0} step={0.01} value={item.price}
                                   onChange={e => updateLineItem(index, 'price', Number(e.target.value))}
-                                  className="w-full bg-surface-container-high rounded-lg px-2.5 py-1.5 text-sm outline-none focus:ring-2 focus:ring-primary transition-all border-none text-center"
+                                  className="w-full bg-surface-container-low border border-surface-container-high rounded-lg px-2.5 py-1.5 text-sm outline-none focus:ring-2 focus:ring-primary transition-all text-center"
                                 />
                               </td>
-                              <td className="px-3 py-2">
-                                <span className="block text-center font-bold text-primary text-sm">
-                                  {(item.quantity * item.price).toLocaleString('ar-SA')}
-                                </span>
+                              <td className="px-3 py-2 text-center font-bold text-violet-700 font-mono text-sm">
+                                {(Number(item.quantity) * Number(item.price)).toLocaleString('ar-SA')}
                               </td>
                               <td className="px-3 py-2">
                                 <button
                                   onClick={() => removeLineItem(index)}
                                   disabled={form.items.length === 1}
-                                  className="p-1 text-on-surface-variant/40 hover:text-error hover:bg-error-container rounded-lg transition-all disabled:opacity-30"
+                                  className="p-1.5 text-on-surface-variant/40 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all disabled:opacity-30"
                                 >
-                                  <Trash size={15} />
+                                  <Trash size={14} />
                                 </button>
                               </td>
                             </tr>
                           ))}
                         </tbody>
-                        <tfoot className="bg-surface-container-low/40 border-t border-surface-container-high">
-                          <tr>
-                            <td colSpan={3} className="px-3 py-2.5 text-left text-xs font-bold text-on-surface-variant">
-                              الإجمالي الكلي
-                            </td>
-                            <td className="px-3 py-2.5 text-center font-bold text-primary">
-                              {form.items.reduce((s, it) => s + it.quantity * it.price, 0).toLocaleString('ar-SA')} ر.س
+                        <tfoot>
+                          <tr className="bg-violet-50 border-t border-violet-200">
+                            <td colSpan={3} className="px-3 py-3 text-xs font-bold text-violet-700">الإجمالي الكلي</td>
+                            <td className="px-3 py-3 text-center font-extrabold text-violet-700 font-mono">
+                              {form.items.reduce((s, it) => s + Number(it.quantity) * Number(it.price), 0).toLocaleString('ar-SA')} ر.س
                             </td>
                             <td />
                           </tr>
@@ -485,68 +477,25 @@ export default function PurchaseInvoices({ inventoryItems, onInventoryUpdate }: 
                 </div>
               </div>
 
-              {/* Modal Footer */}
-              <div className="p-4 sm:p-5 border-t border-surface-container-low flex-shrink-0 space-y-3">
+              <div className="p-5 border-t border-surface-container-low flex-shrink-0 space-y-3">
                 {!editingId && form.items.some(it => it.inventoryItemId) && (
-                  <div className="flex items-center gap-2 bg-primary-fixed/30 text-primary rounded-lg px-3 py-2 text-xs font-medium">
+                  <div className="flex items-center gap-2 bg-violet-50 text-violet-700 border border-violet-200 rounded-xl px-3 py-2.5 text-xs font-medium">
                     <Package size={14} />
                     سيتم تحديث كميات الأصناف المرتبطة في المخزون تلقائياً عند الحفظ
                   </div>
                 )}
-                <div className="flex items-center gap-3">
-                  <button
-                    onClick={handleSave}
-                    className="flex-1 bg-gradient-to-r from-primary to-primary-container text-white py-2.5 rounded-lg font-bold hover:scale-[1.02] transition-all shadow-lg shadow-primary/20 active:scale-95 text-sm"
-                  >
-                    حفظ الفاتورة
-                  </button>
-                  <button
-                    onClick={() => setIsModalOpen(false)}
-                    className="flex-1 bg-surface-container-high text-on-surface py-2.5 rounded-lg font-bold hover:bg-surface-container-highest transition-all active:scale-95 text-sm"
-                  >
+                <div className="flex gap-3">
+                  <button onClick={() => setIsModalOpen(false)} className="flex-1 py-3 rounded-xl font-bold text-sm border border-surface-container-high text-on-surface hover:bg-surface-container-low transition-colors">
                     إلغاء
                   </button>
+                  <button
+                    onClick={handleSave}
+                    disabled={!form.invoiceNumber || !form.supplier || !form.date}
+                    className="flex-1 py-3 rounded-xl font-bold text-sm bg-primary text-white hover:bg-primary-dark transition-all shadow-lg shadow-primary/20 disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    {editingId ? 'حفظ التعديلات' : 'إضافة الفاتورة'}
+                  </button>
                 </div>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
-
-      {/* Delete Confirmation Modal */}
-      <AnimatePresence>
-        {invoiceToDelete && (
-          <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="absolute inset-0 bg-black/40 backdrop-blur-sm"
-              onClick={() => setInvoiceToDelete(null)}
-            />
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-surface-container-lowest rounded-2xl p-6 max-w-sm w-full shadow-xl relative z-10"
-            >
-              <h3 className="text-xl font-bold text-on-surface mb-2">تأكيد الحذف</h3>
-              <p className="text-on-surface-variant text-sm mb-6">
-                هل أنت متأكد من رغبتك في حذف هذه الفاتورة؟ لا يمكن التراجع عن هذا الإجراء.
-              </p>
-              <div className="flex gap-3 justify-end">
-                <button
-                  onClick={() => setInvoiceToDelete(null)}
-                  className="px-4 py-2.5 rounded-xl text-sm font-bold text-on-surface hover:bg-surface-container-low transition-colors"
-                >
-                  إلغاء
-                </button>
-                <button
-                  onClick={confirmDelete}
-                  className="px-4 py-2.5 rounded-xl text-sm font-bold bg-error text-white hover:bg-error/90 transition-colors shadow-lg shadow-error/20"
-                >
-                  تأكيد الحذف
-                </button>
               </div>
             </motion.div>
           </div>
@@ -556,135 +505,104 @@ export default function PurchaseInvoices({ inventoryItems, onInventoryUpdate }: 
       {/* View Invoice Modal */}
       <AnimatePresence>
         {viewingInvoice && (
-          <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+          <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 sm:p-6">
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               onClick={() => setViewingInvoice(null)}
+              className="absolute inset-0 bg-black/30 backdrop-blur-sm"
             />
             <motion.div
-              initial={{ opacity: 0, y: 20, scale: 0.95 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 20, scale: 0.95 }}
-              className="bg-surface-container-lowest rounded-3xl max-w-xl w-full shadow-2xl relative z-10 overflow-hidden flex flex-col max-h-[90vh]"
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+              className="relative z-[70] w-full max-w-lg max-h-[90vh] bg-white shadow-2xl rounded-3xl overflow-hidden flex flex-col"
             >
-              <div className="p-5 border-b border-surface-container-low flex items-center justify-between">
-                <div>
-                  <h3 className="text-lg font-bold text-on-surface">تفاصيل الفاتورة</h3>
-                  <span className="text-xs text-on-surface-variant font-mono">{viewingInvoice.invoiceNumber}</span>
-                </div>
-                <button
-                  onClick={() => setViewingInvoice(null)}
-                  className="p-2 hover:bg-surface-container-low rounded-full transition-colors text-on-surface-variant"
-                >
-                  <X size={20} />
-                </button>
-              </div>
-
-              <div className="p-5 overflow-y-auto space-y-5">
-                {/* Info Grid */}
-                <div className="grid grid-cols-2 gap-3">
-                  <InfoCard label="المورد" value={viewingInvoice.supplier} />
-                  <InfoCard label="التاريخ" value={viewingInvoice.date} />
-                  <InfoCard label="عدد الأصناف" value={`${viewingInvoice.items.length} صنف`} />
-                  <InfoCard label="إجمالي الفاتورة" value={`${viewingInvoice.totalAmount.toLocaleString('ar-SA')} ر.س`} highlight />
-                </div>
-
-                {/* Items Table */}
-                <div>
-                  <h4 className="text-xs font-bold text-on-surface-variant mb-2">أصناف الفاتورة</h4>
-                  <div className="rounded-xl border border-surface-container-high overflow-hidden">
-                    <table className="w-full text-right text-sm">
-                      <thead className="bg-surface-container-low/60 border-b border-surface-container-high">
-                        <tr>
-                          <th className="px-3 py-2.5 text-[11px] font-bold text-on-surface-variant">اسم الصنف</th>
-                          <th className="px-3 py-2.5 text-[11px] font-bold text-on-surface-variant text-center w-20">الكمية</th>
-                          <th className="px-3 py-2.5 text-[11px] font-bold text-on-surface-variant text-center w-24">السعر</th>
-                          <th className="px-3 py-2.5 text-[11px] font-bold text-on-surface-variant text-center w-28">الإجمالي</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-surface-container-low">
-                        {viewingInvoice.items.map(it => (
-                          <tr key={it.id} className="hover:bg-surface-container-low/20">
-                            <td className="px-3 py-2.5 font-medium text-on-surface">{it.name}</td>
-                            <td className="px-3 py-2.5 text-center text-on-surface-variant">{it.quantity}</td>
-                            <td className="px-3 py-2.5 text-center text-on-surface-variant">{it.price.toLocaleString('ar-SA')}</td>
-                            <td className="px-3 py-2.5 text-center font-bold text-primary">{it.total.toLocaleString('ar-SA')}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                      <tfoot className="bg-surface-container-low/40 border-t border-surface-container-high">
-                        <tr>
-                          <td colSpan={3} className="px-3 py-2.5 text-left text-xs font-bold text-on-surface-variant">الإجمالي</td>
-                          <td className="px-3 py-2.5 text-center font-bold text-primary">
-                            {viewingInvoice.totalAmount.toLocaleString('ar-SA')} ر.س
-                          </td>
-                        </tr>
-                      </tfoot>
-                    </table>
+              <div className="bg-gradient-to-l from-violet-50 to-white px-5 py-4 border-b border-surface-container-low flex items-center justify-between flex-shrink-0">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-violet-100 rounded-xl flex items-center justify-center">
+                    <FileText size={20} className="text-violet-600" />
+                  </div>
+                  <div>
+                    <h3 className="font-extrabold text-on-surface font-mono">{viewingInvoice.invoiceNumber}</h3>
+                    <p className="text-xs text-on-surface-variant">{viewingInvoice.date}</p>
                   </div>
                 </div>
-
+                <button onClick={() => setViewingInvoice(null)} className="p-2 hover:bg-surface-container-low rounded-xl transition-colors">
+                  <X size={18} />
+                </button>
+              </div>
+              <div className="flex-1 overflow-y-auto p-5 space-y-4">
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="bg-surface-container-low rounded-xl p-3">
+                    <p className="text-[11px] text-on-surface-variant font-medium mb-1">المورد</p>
+                    <p className="text-sm font-bold text-on-surface">{viewingInvoice.supplier}</p>
+                  </div>
+                  <div className="bg-surface-container-low rounded-xl p-3">
+                    <p className="text-[11px] text-on-surface-variant font-medium mb-1">الإجمالي</p>
+                    <p className="text-sm font-extrabold text-violet-700 font-mono">{viewingInvoice.totalAmount.toLocaleString('ar-SA')} ر.س</p>
+                  </div>
+                </div>
                 {viewingInvoice.notes && (
-                  <div>
-                    <p className="text-xs font-bold text-on-surface-variant mb-2">ملاحظات</p>
-                    <p className="text-sm text-on-surface bg-surface-container-low/50 p-4 rounded-2xl border border-surface-container-low leading-relaxed">
-                      {viewingInvoice.notes}
-                    </p>
+                  <div className="bg-amber-50 border border-amber-200 rounded-xl p-3">
+                    <p className="text-xs text-amber-700 font-medium">{viewingInvoice.notes}</p>
                   </div>
                 )}
+                <div>
+                  <h4 className="text-sm font-extrabold text-on-surface mb-3">الأصناف ({viewingInvoice.items.length})</h4>
+                  <div className="space-y-2">
+                    {viewingInvoice.items.map(item => (
+                      <div key={item.id} className="flex items-center justify-between py-2.5 px-3 bg-surface-container-low rounded-xl">
+                        <div>
+                          <p className="text-sm font-bold text-on-surface">{item.name}</p>
+                          <p className="text-xs text-on-surface-variant">{item.quantity} × {item.price.toLocaleString('ar-SA')} ر.س</p>
+                        </div>
+                        <p className="text-sm font-extrabold text-violet-700 font-mono">{item.total.toLocaleString('ar-SA')} ر.س</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
-
-              <div className="p-5 border-t border-surface-container-low bg-surface-container-lowest flex gap-3">
-                <button
-                  onClick={() => { setViewingInvoice(null); openEdit(viewingInvoice); }}
-                  className="flex-1 bg-primary-container text-on-primary-container py-3 rounded-xl font-bold hover:bg-primary-container/80 transition-colors flex items-center justify-center gap-2"
-                >
-                  <Edit2 size={18} />
-                  تعديل الفاتورة
+              <div className="p-4 border-t border-surface-container-low flex gap-2 flex-shrink-0">
+                <button onClick={() => { openEdit(viewingInvoice); setViewingInvoice(null); }}
+                  className="flex-1 py-2.5 rounded-xl bg-primary text-white font-bold text-sm hover:bg-primary-dark transition-colors flex items-center justify-center gap-2">
+                  <Edit2 size={15} />تعديل
                 </button>
-                <button
-                  onClick={() => setInvoiceToDelete(viewingInvoice.id)}
-                  className="flex-1 bg-error-container text-error py-3 rounded-xl font-bold hover:bg-error-container/80 transition-colors flex items-center justify-center gap-2"
-                >
-                  <Trash2 size={18} />
-                  حذف الفاتورة
+                <button onClick={() => { setInvoiceToDelete(viewingInvoice.id); setViewingInvoice(null); }}
+                  className="px-4 py-2.5 rounded-xl border border-red-200 text-red-600 hover:bg-red-50 transition-colors font-bold">
+                  <Trash2 size={15} />
                 </button>
               </div>
             </motion.div>
           </div>
         )}
       </AnimatePresence>
-    </div>
-  );
-}
 
-function FieldGroup({
-  label, placeholder, type = 'text', value, onChange
-}: {
-  label: string; placeholder: string; type?: string; value: string; onChange: (v: string) => void;
-}) {
-  return (
-    <div className="space-y-1">
-      <label className="text-[11px] font-bold text-on-surface-variant">{label}</label>
-      <input
-        type={type}
-        placeholder={placeholder}
-        value={value}
-        onChange={e => onChange(e.target.value)}
-        className="w-full bg-surface-container-high border-none rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary transition-all text-sm outline-none"
-      />
-    </div>
-  );
-}
-
-function InfoCard({ label, value, highlight = false }: { label: string; value: string; highlight?: boolean }) {
-  return (
-    <div className="bg-surface-container-low/50 p-4 rounded-2xl border border-surface-container-low">
-      <p className="text-xs font-bold text-on-surface-variant mb-1.5">{label}</p>
-      <p className={cn('text-sm font-bold', highlight ? 'text-primary' : 'text-on-surface')}>{value}</p>
+      {/* Delete Confirm */}
+      <AnimatePresence>
+        {invoiceToDelete && (
+          <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              onClick={() => setInvoiceToDelete(null)}
+              className="absolute inset-0 bg-black/30 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }}
+              transition={{ type: 'spring', damping: 25, stiffness: 400 }}
+              className="relative z-[80] w-full max-w-sm bg-white shadow-2xl rounded-3xl p-6 text-center"
+            >
+              <div className="w-14 h-14 bg-red-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <Trash2 size={26} className="text-red-600" />
+              </div>
+              <h3 className="text-base font-extrabold text-on-surface mb-2">حذف الفاتورة</h3>
+              <p className="text-sm text-on-surface-variant mb-6">هل أنت متأكد من حذف هذه الفاتورة؟</p>
+              <div className="flex gap-3">
+                <button onClick={() => setInvoiceToDelete(null)} className="flex-1 py-3 rounded-xl border border-surface-container-high text-on-surface font-bold text-sm hover:bg-surface-container-low transition-colors">إلغاء</button>
+                <button onClick={confirmDelete} className="flex-1 py-3 rounded-xl bg-red-600 text-white font-bold text-sm hover:bg-red-700 transition-colors">حذف</button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

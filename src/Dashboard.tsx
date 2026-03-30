@@ -1,13 +1,8 @@
-/**
- * @license
- * SPDX-License-Identifier: Apache-2.0
- */
-
 import React, { useMemo } from 'react';
 import {
   TrendingUp, TrendingDown, Package, ShoppingBag, ShoppingCart,
   AlertTriangle, XCircle, ArrowLeft, DollarSign, BarChart3,
-  FileText, Layers, Activity
+  FileText, Layers, Activity, Clock, Zap, ChevronLeft
 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { clsx, type ClassValue } from 'clsx';
@@ -49,154 +44,184 @@ export default function Dashboard({ inventoryItems, onNavigate }: Props) {
 
   const recentActivity = useMemo(() => {
     const sales = salesInvoices.map(inv => ({
-      id: inv.id,
-      type: 'sale' as const,
-      label: inv.invoiceNumber,
-      sub: inv.customer,
-      amount: inv.totalAmount,
-      date: inv.date,
+      id: inv.id, type: 'sale' as const,
+      label: inv.invoiceNumber, sub: inv.customer,
+      amount: inv.totalAmount, date: inv.date,
     }));
     const purchases = purchaseInvoices.map(inv => ({
-      id: inv.id,
-      type: 'purchase' as const,
-      label: inv.invoiceNumber,
-      sub: inv.supplier,
-      amount: inv.totalAmount,
-      date: inv.date,
+      id: inv.id, type: 'purchase' as const,
+      label: inv.invoiceNumber, sub: inv.supplier,
+      amount: inv.totalAmount, date: inv.date,
     }));
     return [...sales, ...purchases]
       .sort((a, b) => b.date.localeCompare(a.date))
-      .slice(0, 6);
+      .slice(0, 7);
   }, [salesInvoices, purchaseInvoices]);
 
-  return (
-    <div className="p-4 lg:p-8 space-y-6 flex-1">
+  const hour = new Date().getHours();
+  const greeting = hour < 12 ? 'صباح الخير' : hour < 17 ? 'مساء الخير' : 'مساء النور';
 
-      {/* Welcome */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h3 className="text-2xl font-extrabold text-on-surface">مرحباً بك 👋</h3>
-          <p className="text-sm text-on-surface-variant mt-1">إليك ملخص نشاط المتجر</p>
+  return (
+    <div className="p-4 lg:p-6 space-y-5">
+
+      {/* Welcome Banner */}
+      <div className="bg-gradient-to-l from-blue-600 to-blue-800 rounded-2xl p-5 lg:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 overflow-hidden relative">
+        <div className="absolute inset-0 opacity-10"
+          style={{ backgroundImage: 'radial-gradient(circle at 20% 50%, white 1px, transparent 1px), radial-gradient(circle at 80% 20%, white 1px, transparent 1px)', backgroundSize: '40px 40px' }}
+        />
+        <div className="relative">
+          <p className="text-blue-200 text-sm font-medium mb-1">{greeting} 👋</p>
+          <h3 className="text-xl lg:text-2xl font-extrabold text-white">مرحباً بك في المُنسق</h3>
+          <p className="text-blue-200 text-sm mt-1.5">إليك ملخص شامل لنشاط عملك اليوم</p>
         </div>
-        <div className="hidden sm:flex items-center gap-2 bg-white border border-surface-container-high rounded-xl px-4 py-2 shadow-sm">
-          <Activity size={16} className="text-primary" />
-          <span className="text-xs font-bold text-on-surface-variant">النظام يعمل بشكل طبيعي</span>
+        <div className="relative flex items-center gap-2 bg-white/15 backdrop-blur-sm border border-white/20 rounded-xl px-4 py-2.5 w-fit">
+          <Activity size={15} className="text-emerald-300" />
+          <span className="text-xs font-bold text-white">النظام يعمل بشكل طبيعي</span>
+          <span className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" />
         </div>
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <KPICard
           label="قيمة المخزون"
-          value={`${totalInventoryValue.toLocaleString('ar-SA')} ر.س`}
-          sub={`${inventoryItems.length} صنف`}
-          icon={<Layers size={22} />}
-          colorClass="text-primary bg-primary-fixed"
-          bgClass="bg-primary-fixed/20"
+          value={`${totalInventoryValue.toLocaleString('ar-SA')}`}
+          unit="ر.س"
+          sub={`${inventoryItems.length} صنف في المخزون`}
+          icon={<Layers size={20} />}
+          gradient="from-blue-600 to-blue-700"
+          iconBg="bg-white/20"
+          iconColor="text-white"
           onClick={() => onNavigate('inventory')}
         />
         <KPICard
           label="إجمالي المبيعات"
-          value={`${totalSales.toLocaleString('ar-SA')} ر.س`}
-          sub={`${salesInvoices.length} فاتورة`}
-          icon={<TrendingUp size={22} />}
-          colorClass="text-green-700 bg-green-100"
-          bgClass="bg-green-50"
+          value={`${totalSales.toLocaleString('ar-SA')}`}
+          unit="ر.س"
+          sub={`${salesInvoices.length} فاتورة مبيعات`}
+          icon={<TrendingUp size={20} />}
+          gradient="from-emerald-500 to-emerald-600"
+          iconBg="bg-white/20"
+          iconColor="text-white"
           onClick={() => onNavigate('sales')}
         />
         <KPICard
           label="إجمالي المشتريات"
-          value={`${totalPurchases.toLocaleString('ar-SA')} ر.س`}
-          sub={`${purchaseInvoices.length} فاتورة`}
-          icon={<ShoppingCart size={22} />}
-          colorClass="text-blue-700 bg-blue-100"
-          bgClass="bg-blue-50"
+          value={`${totalPurchases.toLocaleString('ar-SA')}`}
+          unit="ر.س"
+          sub={`${purchaseInvoices.length} فاتورة مشتريات`}
+          icon={<ShoppingCart size={20} />}
+          gradient="from-violet-500 to-violet-600"
+          iconBg="bg-white/20"
+          iconColor="text-white"
           onClick={() => onNavigate('purchases')}
         />
         <KPICard
-          label="إجمالي الأرباح"
-          value={`${Math.abs(grossProfit).toLocaleString('ar-SA')} ر.س`}
-          sub={`هامش ${profitMargin}%`}
-          icon={grossProfit >= 0 ? <DollarSign size={22} /> : <TrendingDown size={22} />}
-          colorClass={grossProfit >= 0 ? "text-emerald-700 bg-emerald-100" : "text-error bg-error-container"}
-          bgClass={grossProfit >= 0 ? "bg-emerald-50" : "bg-red-50"}
+          label={grossProfit >= 0 ? 'صافي الربح' : 'صافي الخسارة'}
+          value={`${Math.abs(grossProfit).toLocaleString('ar-SA')}`}
+          unit="ر.س"
+          sub={`هامش ${Math.abs(profitMargin)}%`}
+          icon={grossProfit >= 0 ? <DollarSign size={20} /> : <TrendingDown size={20} />}
+          gradient={grossProfit >= 0 ? 'from-amber-500 to-orange-500' : 'from-red-500 to-red-600'}
+          iconBg="bg-white/20"
+          iconColor="text-white"
           negative={grossProfit < 0}
         />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+      {/* Main Content */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
 
-        {/* Quick Navigation Cards */}
+        {/* Quick Actions */}
         <div className="space-y-3">
-          <h4 className="text-sm font-bold text-on-surface-variant px-1">اختصارات سريعة</h4>
+          <div className="flex items-center gap-2 mb-1">
+            <Zap size={15} className="text-primary" />
+            <h4 className="text-sm font-extrabold text-on-surface">اختصارات سريعة</h4>
+          </div>
           <QuickLink
-            icon={<Package size={20} />}
+            icon={<Package size={18} />}
             label="إدارة الأصناف"
             sub={`${inventoryItems.length} صنف في المخزون`}
-            colorClass="text-primary bg-primary-fixed/40"
+            color="bg-blue-50 text-blue-700"
+            hoverColor="hover:bg-blue-100"
             onClick={() => onNavigate('inventory')}
           />
           <QuickLink
-            icon={<ShoppingBag size={20} />}
+            icon={<ShoppingBag size={18} />}
             label="فواتير المبيعات"
             sub={`${salesInvoices.length} فاتورة – ${totalSales.toLocaleString('ar-SA')} ر.س`}
-            colorClass="text-green-700 bg-green-100"
+            color="bg-emerald-50 text-emerald-700"
+            hoverColor="hover:bg-emerald-100"
             onClick={() => onNavigate('sales')}
           />
           <QuickLink
-            icon={<ShoppingCart size={20} />}
+            icon={<ShoppingCart size={18} />}
             label="فواتير المشتريات"
             sub={`${purchaseInvoices.length} فاتورة – ${totalPurchases.toLocaleString('ar-SA')} ر.س`}
-            colorClass="text-blue-700 bg-blue-100"
+            color="bg-violet-50 text-violet-700"
+            hoverColor="hover:bg-violet-100"
             onClick={() => onNavigate('purchases')}
           />
           <QuickLink
-            icon={<BarChart3 size={20} />}
+            icon={<BarChart3 size={18} />}
             label="التقارير والتحليلات"
-            sub="ملخص مالي شامل"
-            colorClass="text-violet-700 bg-violet-100"
+            sub="ملخص مالي شامل وتفصيلي"
+            color="bg-amber-50 text-amber-700"
+            hoverColor="hover:bg-amber-100"
             onClick={() => onNavigate('reports')}
           />
         </div>
 
         {/* Recent Activity */}
         <div className="lg:col-span-2 bg-white rounded-2xl border border-surface-container-high shadow-sm overflow-hidden">
-          <div className="px-5 py-4 border-b border-surface-container-high flex items-center justify-between">
-            <h4 className="font-bold text-on-surface text-sm">آخر النشاطات</h4>
-            <span className="text-xs text-on-surface-variant">{recentActivity.length} عملية</span>
+          <div className="px-5 py-4 border-b border-surface-container-low flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Clock size={15} className="text-primary" />
+              <h4 className="font-extrabold text-on-surface text-sm">آخر النشاطات</h4>
+            </div>
+            <span className="text-xs bg-surface-container-low text-on-surface-variant px-2.5 py-1 rounded-full font-medium">
+              {recentActivity.length} عملية
+            </span>
           </div>
           {recentActivity.length === 0 ? (
-            <div className="p-8 text-center text-on-surface-variant text-sm">
-              <FileText size={32} className="mx-auto mb-2 opacity-30" />
-              <p>لا توجد نشاطات بعد</p>
+            <div className="p-12 text-center text-on-surface-variant">
+              <div className="w-14 h-14 bg-surface-container-low rounded-2xl flex items-center justify-center mx-auto mb-3">
+                <FileText size={24} className="opacity-30" />
+              </div>
+              <p className="text-sm font-medium">لا توجد نشاطات بعد</p>
+              <p className="text-xs mt-1 opacity-60">ابدأ بإضافة فاتورة مبيعات أو مشتريات</p>
             </div>
           ) : (
-            <div className="divide-y divide-surface-container-low">
-              {recentActivity.map((act) => (
+            <div className="divide-y divide-surface-container-low/70">
+              {recentActivity.map((act, idx) => (
                 <motion.div
                   key={act.id}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="flex items-center justify-between px-5 py-3.5 hover:bg-surface-container-low/30 transition-colors cursor-pointer"
+                  initial={{ opacity: 0, x: 10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: idx * 0.04 }}
+                  className="flex items-center justify-between px-5 py-3.5 hover:bg-surface-container-low/40 transition-colors cursor-pointer group"
                   onClick={() => onNavigate(act.type === 'sale' ? 'sales' : 'purchases')}
                 >
                   <div className="flex items-center gap-3">
                     <div className={cn(
-                      "w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0",
-                      act.type === 'sale' ? "bg-green-50 text-green-700" : "bg-blue-50 text-blue-700"
+                      'w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0',
+                      act.type === 'sale' ? 'bg-emerald-50 text-emerald-700' : 'bg-violet-50 text-violet-700'
                     )}>
-                      {act.type === 'sale' ? <ShoppingBag size={17} /> : <ShoppingCart size={17} />}
+                      {act.type === 'sale' ? <ShoppingBag size={16} /> : <ShoppingCart size={16} />}
                     </div>
                     <div>
                       <p className="text-sm font-bold text-on-surface font-mono">{act.label}</p>
                       <p className="text-[11px] text-on-surface-variant">{act.sub}</p>
                     </div>
                   </div>
-                  <div className="text-left">
-                    <p className={cn("text-sm font-bold", act.type === 'sale' ? "text-green-700" : "text-blue-700")}>
-                      {act.type === 'sale' ? '+' : '-'}{act.amount.toLocaleString('ar-SA')} ر.س
-                    </p>
-                    <p className="text-[11px] text-on-surface-variant">{act.date}</p>
+                  <div className="text-left flex items-center gap-2">
+                    <div>
+                      <p className={cn('text-sm font-extrabold', act.type === 'sale' ? 'text-emerald-700' : 'text-violet-700')}>
+                        {act.type === 'sale' ? '+' : '-'}{act.amount.toLocaleString('ar-SA')} ر.س
+                      </p>
+                      <p className="text-[11px] text-on-surface-variant text-left">{act.date}</p>
+                    </div>
+                    <ChevronLeft size={14} className="text-on-surface-variant/30 group-hover:text-primary transition-colors" />
                   </div>
                 </motion.div>
               ))}
@@ -208,23 +233,28 @@ export default function Dashboard({ inventoryItems, onNavigate }: Props) {
       {/* Stock Alerts */}
       {(lowStockItems.length > 0 || outOfStockItems.length > 0) && (
         <div className="bg-white rounded-2xl border border-surface-container-high shadow-sm overflow-hidden">
-          <div className="px-5 py-4 border-b border-surface-container-high flex items-center justify-between">
+          <div className="px-5 py-4 border-b border-surface-container-low flex items-center justify-between bg-gradient-to-l from-amber-50 to-white">
             <div className="flex items-center gap-2">
-              <AlertTriangle size={17} className="text-orange-500" />
-              <h4 className="font-bold text-on-surface text-sm">تنبيهات المخزون</h4>
+              <div className="w-8 h-8 bg-amber-100 rounded-xl flex items-center justify-center">
+                <AlertTriangle size={16} className="text-amber-600" />
+              </div>
+              <div>
+                <h4 className="font-extrabold text-on-surface text-sm">تنبيهات المخزون</h4>
+                <p className="text-[11px] text-on-surface-variant">{outOfStockItems.length} نفذت + {lowStockItems.length} منخفضة</p>
+              </div>
             </div>
             <button
               onClick={() => onNavigate('inventory')}
-              className="flex items-center gap-1 text-xs text-primary font-bold hover:underline"
+              className="flex items-center gap-1 text-xs text-primary font-bold hover:underline px-3 py-1.5 rounded-lg hover:bg-primary-fixed/30 transition-colors"
             >
-              عرض الكل <ArrowLeft size={13} />
+              عرض الكل <ChevronLeft size={13} />
             </button>
           </div>
           <div className="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {outOfStockItems.map(item => (
+            {outOfStockItems.slice(0, 6).map(item => (
               <AlertItem key={item.id} item={item} type="out" onClick={() => onNavigate('inventory')} />
             ))}
-            {lowStockItems.map(item => (
+            {lowStockItems.slice(0, 6 - Math.min(6, outOfStockItems.length)).map(item => (
               <AlertItem key={item.id} item={item} type="low" onClick={() => onNavigate('inventory')} />
             ))}
           </div>
@@ -235,84 +265,87 @@ export default function Dashboard({ inventoryItems, onNavigate }: Props) {
 }
 
 function KPICard({
-  label, value, sub, icon, colorClass, bgClass, onClick, negative
+  label, value, unit, sub, icon, gradient, iconBg, iconColor, onClick, negative
 }: {
-  label: string; value: string; sub: string;
-  icon: React.ReactNode; colorClass: string; bgClass: string;
+  label: string; value: string; unit: string; sub: string;
+  icon: React.ReactNode; gradient: string; iconBg: string; iconColor: string;
   onClick?: () => void; negative?: boolean;
 }) {
   return (
     <motion.div
-      whileHover={onClick ? { scale: 1.02 } : {}}
+      whileHover={onClick ? { scale: 1.02, y: -2 } : {}}
       whileTap={onClick ? { scale: 0.98 } : {}}
       onClick={onClick}
-      className={cn("rounded-2xl p-5 border border-surface-container-high shadow-sm", bgClass, onClick && "cursor-pointer")}
+      className={cn(
+        'bg-gradient-to-br rounded-2xl p-4 shadow-sm',
+        gradient,
+        onClick && 'cursor-pointer'
+      )}
     >
-      <div className="flex items-start justify-between gap-2">
-        <div className="min-w-0">
-          <p className="text-xs font-semibold text-on-surface-variant mb-1 truncate">{label}</p>
-          <p className={cn("text-xl font-extrabold leading-tight", negative ? "text-error" : colorClass.split(' ')[0])}>
-            {negative && '−'}{value}
-          </p>
-          <p className="text-[11px] text-on-surface-variant mt-1.5">{sub}</p>
-        </div>
-        <div className={cn("w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0", colorClass)}>
+      <div className="flex items-start justify-between gap-2 mb-3">
+        <p className="text-xs font-semibold text-white/80 leading-tight">{label}</p>
+        <div className={cn('w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0', iconBg, iconColor)}>
           {icon}
         </div>
       </div>
+      <p className="text-xl lg:text-2xl font-extrabold text-white leading-tight font-mono">
+        {negative && '−'}{value}
+      </p>
+      <p className="text-xs text-white/70 mt-1">{unit} — {sub}</p>
     </motion.div>
   );
 }
 
 function QuickLink({
-  icon, label, sub, colorClass, onClick
+  icon, label, sub, color, hoverColor, onClick
 }: {
-  icon: React.ReactNode; label: string; sub: string; colorClass: string; onClick: () => void;
+  icon: React.ReactNode; label: string; sub: string;
+  color: string; hoverColor: string; onClick: () => void;
 }) {
   return (
     <motion.button
-      whileHover={{ scale: 1.01 }}
+      whileHover={{ scale: 1.01, x: -3 }}
       whileTap={{ scale: 0.98 }}
       onClick={onClick}
-      className="w-full bg-white rounded-xl p-4 border border-surface-container-high shadow-sm hover:shadow-md transition-all flex items-center justify-between text-right"
+      className={cn(
+        'w-full rounded-xl p-3.5 border border-surface-container-high shadow-sm transition-all flex items-center justify-between text-right bg-white',
+        hoverColor
+      )}
     >
       <div className="flex items-center gap-3">
-        <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0", colorClass)}>
+        <div className={cn('w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0', color)}>
           {icon}
         </div>
-        <div>
+        <div className="text-right">
           <p className="text-sm font-bold text-on-surface">{label}</p>
           <p className="text-[11px] text-on-surface-variant">{sub}</p>
         </div>
       </div>
-      <ArrowLeft size={16} className="text-on-surface-variant/40 flex-shrink-0" />
+      <ChevronLeft size={15} className="text-on-surface-variant/30 flex-shrink-0" />
     </motion.button>
   );
 }
 
-function AlertItem({
-  item, type, onClick
-}: {
-  item: InventoryItem; type: 'low' | 'out'; onClick: () => void;
-}) {
+function AlertItem({ item, type, onClick }: { item: InventoryItem; type: 'low' | 'out'; onClick: () => void }) {
   return (
     <div
       onClick={onClick}
       className={cn(
-        "flex items-center gap-3 p-3 rounded-xl border cursor-pointer hover:shadow-sm transition-all",
+        'flex items-center gap-3 p-3 rounded-xl border cursor-pointer hover:shadow-sm transition-all',
         type === 'out'
-          ? "bg-red-50 border-red-100 hover:border-red-200"
-          : "bg-orange-50 border-orange-100 hover:border-orange-200"
+          ? 'bg-red-50 border-red-200 hover:border-red-300'
+          : 'bg-amber-50 border-amber-200 hover:border-amber-300'
       )}
     >
-      <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0",
-        type === 'out' ? "bg-error-container text-error" : "bg-orange-100 text-orange-600"
+      <div className={cn(
+        'w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0',
+        type === 'out' ? 'bg-red-100 text-red-600' : 'bg-amber-100 text-amber-600'
       )}>
-        {type === 'out' ? <XCircle size={16} /> : <AlertTriangle size={16} />}
+        {type === 'out' ? <XCircle size={15} /> : <AlertTriangle size={15} />}
       </div>
       <div className="min-w-0">
         <p className="text-xs font-bold text-on-surface truncate">{item.name}</p>
-        <p className={cn("text-[11px] font-medium", type === 'out' ? "text-error" : "text-orange-600")}>
+        <p className={cn('text-[11px] font-medium', type === 'out' ? 'text-red-600' : 'text-amber-600')}>
           {type === 'out' ? 'نفذ المخزون' : `متبقي: ${item.quantity} وحدة`}
         </p>
       </div>

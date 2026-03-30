@@ -95,37 +95,50 @@ export default function Reports({ inventoryItems }: Props) {
     <div className="p-4 lg:p-8 space-y-6 flex-1">
 
       {/* Summary KPIs */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <SummaryCard
-          label="إجمالي الإيرادات"
-          value={`${totalSales.toLocaleString('ar-SA')} ر.س`}
-          icon={<TrendingUp size={20} />}
-          color="text-green-700 bg-green-100"
-          bg="bg-green-50"
-        />
-        <SummaryCard
-          label="إجمالي التكاليف"
-          value={`${totalPurchases.toLocaleString('ar-SA')} ر.س`}
-          icon={<ShoppingCart size={20} />}
-          color="text-blue-700 bg-blue-100"
-          bg="bg-blue-50"
-        />
-        <SummaryCard
-          label={grossProfit >= 0 ? "صافي الربح" : "صافي الخسارة"}
-          value={`${Math.abs(grossProfit).toLocaleString('ar-SA')} ر.س`}
-          icon={grossProfit >= 0 ? <DollarSign size={20} /> : <TrendingDown size={20} />}
-          color={grossProfit >= 0 ? "text-emerald-700 bg-emerald-100" : "text-error bg-error-container"}
-          bg={grossProfit >= 0 ? "bg-emerald-50" : "bg-red-50"}
-          sub={`هامش الربح ${profitMargin}%`}
-        />
-        <SummaryCard
-          label="قيمة المخزون الحالية"
-          value={`${totalInventoryValue.toLocaleString('ar-SA')} ر.س`}
-          icon={<Layers size={20} />}
-          color="text-primary bg-primary-fixed"
-          bg="bg-primary-fixed/20"
-          sub={`${inventoryItems.length} صنف`}
-        />
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-2xl p-4 shadow-sm">
+          <div className="flex items-start justify-between mb-2">
+            <p className="text-xs font-semibold text-white/80">إجمالي الإيرادات</p>
+            <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0">
+              <TrendingUp size={18} className="text-white" />
+            </div>
+          </div>
+          <p className="text-xl font-extrabold text-white font-mono">{totalSales.toLocaleString('ar-SA')}</p>
+          <p className="text-xs text-white/70 mt-1">ريال سعودي</p>
+        </div>
+        <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-2xl p-4 shadow-sm">
+          <div className="flex items-start justify-between mb-2">
+            <p className="text-xs font-semibold text-white/80">إجمالي التكاليف</p>
+            <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0">
+              <ShoppingCart size={18} className="text-white" />
+            </div>
+          </div>
+          <p className="text-xl font-extrabold text-white font-mono">{totalPurchases.toLocaleString('ar-SA')}</p>
+          <p className="text-xs text-white/70 mt-1">ريال سعودي</p>
+        </div>
+        <div className={cn(
+          "bg-gradient-to-br rounded-2xl p-4 shadow-sm",
+          grossProfit >= 0 ? "from-amber-500 to-orange-500" : "from-red-500 to-red-600"
+        )}>
+          <div className="flex items-start justify-between mb-2">
+            <p className="text-xs font-semibold text-white/80">{grossProfit >= 0 ? 'صافي الربح' : 'صافي الخسارة'}</p>
+            <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0">
+              {grossProfit >= 0 ? <DollarSign size={18} className="text-white" /> : <TrendingDown size={18} className="text-white" />}
+            </div>
+          </div>
+          <p className="text-xl font-extrabold text-white font-mono">{Math.abs(grossProfit).toLocaleString('ar-SA')}</p>
+          <p className="text-xs text-white/70 mt-1">هامش {profitMargin}%</p>
+        </div>
+        <div className="bg-gradient-to-br from-slate-600 to-slate-700 rounded-2xl p-4 shadow-sm">
+          <div className="flex items-start justify-between mb-2">
+            <p className="text-xs font-semibold text-white/80">قيمة المخزون</p>
+            <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0">
+              <Layers size={18} className="text-white" />
+            </div>
+          </div>
+          <p className="text-xl font-extrabold text-white font-mono">{totalInventoryValue.toLocaleString('ar-SA')}</p>
+          <p className="text-xs text-white/70 mt-1">{inventoryItems.length} صنف في المخزون</p>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
