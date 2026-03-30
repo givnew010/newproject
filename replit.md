@@ -30,12 +30,14 @@ A professional Arabic-language sales, purchasing, and inventory management syste
 | فواتير المشتريات | `purchases` | Purchase invoices → increase inventory |
 | التقارير | `reports` | Monthly charts, top items, inventory table |
 | المخازن | `warehouses` | Warehouse CRUD with capacity and utilization |
+| الإعدادات | `settings` | Company info, invoice config, notifications, data backup |
 
 ## localStorage Keys
 - `inventory_items` — Array of InventoryItem
 - `purchase_invoices` — Array of PurchaseInvoice
 - `sales_invoices` — Array of SalesInvoice
 - `warehouses` — Array of Warehouse
+- `app_settings` — AppSettings object
 
 ## Key Business Logic
 - **Inventory Status**: auto-calculated: 0 → out-of-stock, ≤5 → low-stock, >5 → in-stock
