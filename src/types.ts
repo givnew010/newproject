@@ -59,3 +59,20 @@ export interface Warehouse {
   notes?: string;
   color: 'blue' | 'green' | 'orange' | 'purple' | 'red' | 'teal';
 }
+
+export type UserRole = 'admin' | 'manager' | 'accountant' | 'warehouse' | 'sales' | 'viewer';
+export type UserStatus = 'active' | 'inactive' | 'suspended';
+
+export interface SystemUser {
+  id: string;
+  fullName: string;
+  email: string;
+  phone: string;
+  role: UserRole;
+  status: UserStatus;
+  department: string;
+  createdAt: string;
+  lastLogin?: string;
+  avatar?: string;
+  notes?: string;
+}

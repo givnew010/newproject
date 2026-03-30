@@ -1,12 +1,11 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import {
   Search, Bell, Settings, LayoutDashboard, Package, Warehouse,
-  BarChart3, Plus, HelpCircle, ShoppingCart, ShoppingBag,
-  Filter, Download, Barcode, Edit2, Trash2, X,
+  BarChart3, Plus, ShoppingCart, ShoppingBag,
+  Filter, Download, Edit2, Trash2, X,
   TrendingUp, AlertTriangle, XCircle, Layers,
   ChevronDown, SortAsc, SortDesc, Menu, ArrowUpDown,
-  ChevronRight, ChevronLeft, MoreVertical, Eye, LogOut,
-  Sparkles
+  ChevronRight, ChevronLeft, Eye, LogOut, Users
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { clsx, type ClassValue } from 'clsx';
@@ -18,8 +17,9 @@ import Dashboard from './Dashboard';
 import Reports from './Reports';
 import Warehouses from './Warehouses';
 import SettingsPage from './Settings';
+import UsersPage from './Users';
 
-type Page = 'dashboard' | 'inventory' | 'purchases' | 'sales' | 'reports' | 'warehouses' | 'settings';
+type Page = 'dashboard' | 'inventory' | 'purchases' | 'sales' | 'reports' | 'warehouses' | 'users' | 'settings';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -298,6 +298,7 @@ export default function App() {
     sales: 'فواتير المبيعات',
     reports: 'التقارير والتحليلات',
     warehouses: 'إدارة المخازن',
+    users: 'إدارة المستخدمين',
     settings: 'الإعدادات',
   };
 
@@ -398,6 +399,12 @@ export default function App() {
             <p className="text-[9px] font-bold text-blue-400 uppercase tracking-widest">النظام</p>
           </div>
           <NavItem
+            icon={<Users size={18} />}
+            label="إدارة المستخدمين"
+            active={currentPage === 'users'}
+            onClick={() => navigateTo('users')}
+          />
+          <NavItem
             icon={<Settings size={18} />}
             label="الإعدادات"
             active={currentPage === 'settings'}
@@ -495,6 +502,11 @@ export default function App() {
             {currentPage === 'warehouses' && (
               <motion.div key="warehouses" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }}>
                 <Warehouses inventoryItems={items} />
+              </motion.div>
+            )}
+            {currentPage === 'users' && (
+              <motion.div key="users" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }}>
+                <UsersPage />
               </motion.div>
             )}
             {currentPage === 'settings' && (
