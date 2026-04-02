@@ -1,0 +1,1711 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>خطة إكمال مشروع المُنسق — مفصّلة</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;900&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #080d1a;
+    --bg2: #0c1220;
+    --surface: #111827;
+    --surface2: #161f33;
+    --surface3: #1c2840;
+    --border: #1e2d4a;
+    --border2: #243556;
+    --text: #e2eaf8;
+    --muted: #5d7099;
+    --muted2: #8098c4;
+    --accent: #3b82f6;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Cairo', sans-serif;
+    min-height: 100vh;
+    padding: 0 0 80px;
+  }
+
+  /* ═══ TOP HEADER ═══ */
+  .top-header {
+    background: linear-gradient(180deg, #0f1829 0%, var(--bg) 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 40px 24px 32px;
+    text-align: center;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    backdrop-filter: blur(12px);
+  }
+  .top-header h1 {
+    font-size: clamp(20px, 4vw, 34px);
+    font-weight: 900;
+    background: linear-gradient(135deg, #60a5fa, #a78bfa, #34d399);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .top-header p { color: var(--muted2); font-size: 13px; margin-top: 6px; }
+
+  /* progress */
+  .progress-bar-wrap {
+    max-width: 600px;
+    margin: 16px auto 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .prog-track {
+    flex: 1;
+    height: 6px;
+    background: var(--border);
+    border-radius: 99px;
+    overflow: hidden;
+  }
+  .prog-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #6366f1, #3b82f6, #0ea5e9);
+    border-radius: 99px;
+    transition: width 0.5s cubic-bezier(.4,0,.2,1);
+    width: 0%;
+  }
+  .prog-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--accent);
+    white-space: nowrap;
+    min-width: 56px;
+    text-align: left;
+  }
+
+  /* ═══ LAYOUT ═══ */
+  .layout {
+    display: flex;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 16px;
+  }
+
+  /* ═══ SIDEBAR NAV ═══ */
+  .sidebar {
+    width: 220px;
+    flex-shrink: 0;
+    padding: 24px 0;
+    position: sticky;
+    top: 120px;
+    height: calc(100vh - 120px);
+    overflow-y: auto;
+  }
+  .sidebar-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: var(--muted);
+    text-transform: uppercase;
+    padding: 0 12px;
+    margin-bottom: 10px;
+  }
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--muted2);
+    transition: all 0.15s;
+    margin-bottom: 2px;
+    text-decoration: none;
+  }
+  .nav-item:hover { background: var(--surface2); color: var(--text); }
+  .nav-item.active { background: var(--surface3); color: var(--text); }
+  .nav-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .nav-count {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    background: var(--border);
+    padding: 1px 6px;
+    border-radius: 99px;
+    margin-right: auto;
+  }
+  .sidebar::-webkit-scrollbar { width: 3px; }
+  .sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  /* ═══ MAIN CONTENT ═══ */
+  .main-content {
+    flex: 1;
+    min-width: 0;
+    padding: 24px 0 24px 24px;
+  }
+
+  /* ═══ PHASE ═══ */
+  .phase-section {
+    margin-bottom: 40px;
+    scroll-margin-top: 140px;
+  }
+  .phase-heading {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--border);
+  }
+  .phase-badge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px; height: 40px;
+    border-radius: 12px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 15px;
+    font-weight: 700;
+    color: #fff;
+    flex-shrink: 0;
+  }
+  .phase-title-block { flex: 1; }
+  .phase-title-block h2 { font-size: 17px; font-weight: 800; }
+  .phase-title-block p { font-size: 12px; color: var(--muted2); margin-top: 3px; }
+  .phase-stats {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+  .phase-stat {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    padding: 3px 8px;
+    border-radius: 6px;
+    background: var(--surface2);
+    color: var(--muted2);
+  }
+
+  /* ═══ GROUP (sub-group within phase) ═══ */
+  .task-group {
+    margin-bottom: 20px;
+  }
+  .group-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 8px;
+    padding-right: 4px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .group-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* ═══ TASK CARD ═══ */
+  .task-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 0;
+    margin-bottom: 8px;
+    transition: border-color 0.2s, background 0.2s;
+    overflow: hidden;
+  }
+  .task-card:hover { border-color: var(--border2); }
+  .task-card.done { opacity: 0.45; }
+  .task-card.done .task-title { text-decoration: line-through; }
+
+  .task-top {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px 16px;
+    cursor: pointer;
+  }
+  .task-check {
+    width: 20px; height: 20px;
+    border-radius: 6px;
+    border: 2px solid var(--border2);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    margin-top: 2px;
+    transition: all 0.2s;
+  }
+  .task-card.done .task-check {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+  .check-svg { display: none; }
+  .task-card.done .check-svg { display: block; }
+
+  .task-main { flex: 1; min-width: 0; }
+  .task-title {
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 3px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .task-id {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    background: var(--surface2);
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-weight: 400;
+  }
+  .task-brief { font-size: 12px; color: var(--muted2); line-height: 1.6; }
+
+  .task-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+  .priority-badge {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 99px;
+    white-space: nowrap;
+  }
+  .p-urgent  { background: #ef444418; color: #f87171; border: 1px solid #ef444435; }
+  .p-important { background: #f59e0b18; color: #fbbf24; border: 1px solid #f59e0b35; }
+  .p-enhance { background: #10b98118; color: #34d399; border: 1px solid #10b98135; }
+  .effort-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    background: var(--surface2);
+    padding: 2px 7px;
+    border-radius: 5px;
+    white-space: nowrap;
+  }
+
+  /* expandable detail */
+  .task-expand-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0 16px 12px 48px;
+    font-size: 11px;
+    color: var(--muted);
+    cursor: pointer;
+    user-select: none;
+    transition: color 0.15s;
+  }
+  .task-expand-btn:hover { color: var(--muted2); }
+  .expand-arrow { font-size: 9px; transition: transform 0.2s; }
+  .expand-arrow.open { transform: rotate(180deg); }
+
+  .task-detail {
+    background: var(--surface2);
+    border-top: 1px solid var(--border);
+    padding: 16px 16px 16px 48px;
+    overflow: hidden;
+    max-height: 0;
+    transition: max-height 0.35s cubic-bezier(.4,0,.2,1);
+  }
+  .task-detail.open { max-height: 800px; }
+
+  .detail-section { margin-bottom: 14px; }
+  .detail-section:last-child { margin-bottom: 0; }
+  .detail-section-title {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+  .detail-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+  .detail-list li {
+    font-size: 12px;
+    color: var(--muted2);
+    padding-right: 14px;
+    position: relative;
+    line-height: 1.6;
+  }
+  .detail-list li::before {
+    content: '◦';
+    position: absolute;
+    right: 0;
+    color: var(--muted);
+  }
+  .code-inline {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    background: var(--surface3);
+    border: 1px solid var(--border2);
+    padding: 1px 6px;
+    border-radius: 4px;
+    color: #93c5fd;
+  }
+  .file-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    background: #1e3a5f;
+    border: 1px solid #2d5a8f;
+    color: #7dd3fc;
+    padding: 2px 7px;
+    border-radius: 4px;
+    margin: 2px;
+  }
+  .files-row { display: flex; flex-wrap: wrap; gap: 2px; margin-top: 4px; }
+
+  /* ═══ STATS OVERVIEW ═══ */
+  .overview-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 12px;
+    max-width: 1200px;
+    margin: 24px auto 0;
+    padding: 0 16px;
+  }
+  .ov-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    text-align: center;
+  }
+  .ov-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .ov-label { font-size: 11px; color: var(--muted2); }
+
+  ::-webkit-scrollbar { width: 5px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  @media (max-width: 700px) {
+    .sidebar { display: none; }
+    .main-content { padding: 16px 0; }
+    .layout { padding: 0 12px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- TOP HEADER -->
+<div class="top-header">
+  <h1>خطة إكمال مشروع المُنسق — مفصّلة</h1>
+  <p>Backend API (SQLite + Express) · ربط Frontend · ميزات جديدة كاملة</p>
+  <div class="progress-bar-wrap">
+    <div class="prog-track"><div class="prog-fill" id="progFill"></div></div>
+    <div class="prog-label" id="progLabel">0 / 0</div>
+  </div>
+</div>
+
+<!-- OVERVIEW CARDS -->
+<div class="overview-cards">
+  <div class="ov-card"><div class="ov-num" style="color:#60a5fa" id="ovTotal">0</div><div class="ov-label">إجمالي المهام</div></div>
+  <div class="ov-card"><div class="ov-num" style="color:#34d399" id="ovDone">0</div><div class="ov-label">منجزة</div></div>
+  <div class="ov-card"><div class="ov-num" style="color:#f87171" id="ovUrgent">0</div><div class="ov-label">عاجلة</div></div>
+  <div class="ov-card"><div class="ov-num" style="color:#fbbf24" id="ovImportant">0</div><div class="ov-label">مهمة</div></div>
+  <div class="ov-card"><div class="ov-num" style="color:#a78bfa" id="ovPhases">0</div><div class="ov-label">مراحل</div></div>
+</div>
+
+<!-- LAYOUT -->
+<div class="layout" style="margin-top:24px">
+  <!-- SIDEBAR -->
+  <nav class="sidebar" id="sidebar"></nav>
+  <!-- MAIN -->
+  <div class="main-content" id="mainContent"></div>
+</div>
+
+<script>
+const STORAGE_KEY = 'almunsiq_v2_done';
+const EXPAND_KEY  = 'almunsiq_v2_expand';
+
+// ═══════════════════════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════════════════════
+const phases = [
+{
+  id:'ph1', color:'#6366f1',
+  title:'المرحلة 1 — إعداد بيئة الـ Backend',
+  sub:'تجهيز المشروع لاستقبال Express + SQLite',
+  groups:[
+    {
+      label:'تجهيز الحزم والهيكل',
+      tasks:[
+        {
+          id:'1-1',
+          title:'تثبيت حزم الـ Backend المطلوبة',
+          brief:'تثبيت better-sqlite3, zod, cors, bcryptjs, jsonwebtoken عبر npm',
+          priority:'urgent', effort:'30 دقيقة',
+          steps:[
+            'تشغيل: npm install better-sqlite3 zod cors bcryptjs jsonwebtoken',
+            'تثبيت أنواع TypeScript: npm install -D @types/better-sqlite3 @types/bcryptjs @types/jsonwebtoken',
+            'التأكد أن express و @types/express موجودان (هما موجودان بالفعل في package.json)',
+            'إضافة tsx إلى devDependencies إذا لم يكن موجوداً (موجود بالفعل)',
+          ],
+          files:['package.json'],
+          notes:'express موجود بالفعل في المشروع، فقط نضيف ما ينقص'
+        },
+        {
+          id:'1-2',
+          title:'إعداد هيكل مجلد server/',
+          brief:'تنظيم ملفات الـ Backend داخل مجلد server/ بطريقة منظمة',
+          priority:'urgent', effort:'30 دقيقة',
+          steps:[
+            'إنشاء: server/index.ts — نقطة دخول Express',
+            'إنشاء: server/db.ts — إعداد اتصال SQLite وتصدير الـ db instance',
+            'إنشاء: server/middleware/ — مجلد للـ middlewares (auth, errorHandler)',
+            'إنشاء: server/routes/ — مجلد لكل مجموعة routes',
+            'إنشاء: server/schemas/ — ملفات Zod للتحقق من البيانات',
+            'إنشاء: server/types.ts — أنواع TypeScript المشتركة',
+          ],
+          files:['server/index.ts','server/db.ts','server/routes/','server/middleware/','server/schemas/'],
+        },
+        {
+          id:'1-3',
+          title:'إعداد نقطة دخول Express الرئيسية (server/index.ts)',
+          brief:'كتابة الملف الرئيسي الذي يشغّل الـ server على port منفصل',
+          priority:'urgent', effort:'1 ساعة',
+          steps:[
+            'استيراد express, cors, والـ routes كلها',
+            'تفعيل cors مع origin: http://localhost:5000 (Vite port)',
+            'استخدام express.json() و express.urlencoded()',
+            'تسجيل جميع الـ routes تحت prefix /api/v1/',
+            'إضافة error handler middleware في النهاية',
+            'تشغيل السيرفر على port 3001',
+            'إضافة script في package.json: "server": "tsx watch server/index.ts"',
+          ],
+          files:['server/index.ts','package.json'],
+          notes:'Vite يعمل على 5000، Express على 3001، نضيف proxy في vite.config.ts'
+        },
+        {
+          id:'1-4',
+          title:'إعداد Vite Proxy لتوجيه طلبات /api إلى Express',
+          brief:'تعديل vite.config.ts لتوجيه كل طلبات /api إلى Express تلقائياً',
+          priority:'urgent', effort:'15 دقيقة',
+          steps:[
+            'فتح vite.config.ts وإضافة قسم server.proxy',
+            'إضافة: proxy: { "/api": { target: "http://localhost:3001", changeOrigin: true } }',
+            'هكذا الـ Frontend يكتب fetch("/api/v1/...") وتصل لـ Express تلقائياً',
+            'اختبار الـ proxy بطلب بسيط GET /api/v1/health',
+          ],
+          files:['vite.config.ts'],
+        },
+      ]
+    }
+  ]
+},
+{
+  id:'ph2', color:'#3b82f6',
+  title:'المرحلة 2 — قاعدة البيانات SQLite',
+  sub:'إنشاء جميع الجداول وعلاقاتها',
+  groups:[
+    {
+      label:'إعداد الاتصال والجداول الأساسية',
+      tasks:[
+        {
+          id:'2-1',
+          title:'إعداد اتصال SQLite وإنشاء ملف db.ts',
+          brief:'كتابة ملف الاتصال بقاعدة البيانات مع تفعيل WAL mode',
+          priority:'urgent', effort:'30 دقيقة',
+          steps:[
+            'استيراد Database من better-sqlite3',
+            'إنشاء ملف: data/database.sqlite (تلقائياً عند أول تشغيل)',
+            'تفعيل WAL mode: db.pragma("journal_mode = WAL") لتحسين الأداء',
+            'تفعيل Foreign Keys: db.pragma("foreign_keys = ON")',
+            'تصدير الـ db instance للاستخدام في كل الـ routes',
+          ],
+          files:['server/db.ts','data/database.sqlite'],
+        },
+        {
+          id:'2-2',
+          title:'إنشاء جدول users (المستخدمون)',
+          brief:'جدول المستخدمين مع الأدوار والصلاحيات',
+          priority:'urgent', effort:'20 دقيقة',
+          steps:[
+            'CREATE TABLE users: id (INTEGER PK), username, password_hash, full_name',
+            'إضافة حقل: role TEXT (admin | accountant | sales | warehouse)',
+            'إضافة: is_active INTEGER DEFAULT 1',
+            'إضافة: created_at, last_login TEXT',
+            'إضافة unique constraint على username',
+            'إدخال مستخدم admin افتراضي (admin/admin123) كـ seed data',
+          ],
+          files:['server/db.ts'],
+        },
+        {
+          id:'2-3',
+          title:'إنشاء جدول inventory_items (الأصناف)',
+          brief:'جدول الأصناف مطابق للنوع InventoryItem الموجود في src/types.ts مع إضافات',
+          priority:'urgent', effort:'20 دقيقة',
+          steps:[
+            'CREATE TABLE inventory_items: id, name, sku (رقم الصنف), barcode',
+            'إضافة: category, unit (قطعة/كيلو/كرتون), quantity REAL',
+            'إضافة: min_quantity REAL (حد التنبيه), cost_price REAL, selling_price REAL',
+            'إضافة: warehouse_id INTEGER REFERENCES warehouses(id)',
+            'إضافة: description, is_active, created_at, updated_at',
+            'إنشاء index على: sku, barcode, category لتسريع البحث',
+          ],
+          files:['server/db.ts'],
+        },
+        {
+          id:'2-4',
+          title:'إنشاء جدول warehouses (المخازن)',
+          brief:'جدول المخازن مطابق للنوع الموجود في المشروع',
+          priority:'urgent', effort:'15 دقيقة',
+          steps:[
+            'CREATE TABLE warehouses: id, name, location, capacity REAL',
+            'إضافة: manager_name, phone, is_active, created_at',
+            'إضافة: color TEXT (للـ UI)، description TEXT',
+          ],
+          files:['server/db.ts'],
+        },
+        {
+          id:'2-5',
+          title:'إنشاء جدولَي customers و suppliers',
+          brief:'جداول العملاء والموردين كأساس للفواتير',
+          priority:'urgent', effort:'25 دقيقة',
+          steps:[
+            'CREATE TABLE customers: id, name, phone, email, address',
+            'إضافة للعملاء: credit_limit REAL DEFAULT 0, balance REAL DEFAULT 0',
+            'إضافة للعملاء: tax_number, notes, is_active, created_at',
+            'CREATE TABLE suppliers: id, name, phone, email, address, contact_person',
+            'إضافة للموردين: payment_terms TEXT (يومي/أسبوعي/شهري), balance REAL DEFAULT 0',
+            'إضافة للموردين: tax_number, notes, is_active, created_at',
+          ],
+          files:['server/db.ts'],
+        },
+      ]
+    },
+    {
+      label:'جداول الفواتير والمدفوعات',
+      tasks:[
+        {
+          id:'2-6',
+          title:'إنشاء جداول فواتير المبيعات',
+          brief:'جدولان: رأس الفاتورة + بنود الفاتورة',
+          priority:'urgent', effort:'25 دقيقة',
+          steps:[
+            'CREATE TABLE sales_invoices: id, invoice_number (فريد), customer_id FK',
+            'إضافة: date TEXT, due_date TEXT, status (draft|confirmed|paid|partial|cancelled)',
+            'إضافة: payment_type (cash|credit|partial), subtotal, discount_amount',
+            'إضافة: tax_rate REAL DEFAULT 15, tax_amount, total, paid_amount, notes',
+            'إضافة: created_by FK users(id), created_at, updated_at',
+            'CREATE TABLE sales_invoice_items: id, invoice_id FK, item_id FK',
+            'إضافة للبنود: quantity REAL, unit_price REAL, discount REAL DEFAULT 0, total REAL',
+            'إنشاء trigger لتحديث updated_at تلقائياً',
+          ],
+          files:['server/db.ts'],
+        },
+        {
+          id:'2-7',
+          title:'إنشاء جداول فواتير المشتريات',
+          brief:'بنفس هيكل فواتير المبيعات مع خصوصية المشتريات',
+          priority:'urgent', effort:'20 دقيقة',
+          steps:[
+            'CREATE TABLE purchase_invoices: id, invoice_number, supplier_id FK',
+            'إضافة: date, due_date, status, payment_type, subtotal, discount_amount',
+            'إضافة: tax_rate, tax_amount, total, paid_amount, notes',
+            'إضافة: created_by FK, created_at, updated_at',
+            'CREATE TABLE purchase_invoice_items: id, invoice_id FK, item_id FK',
+            'إضافة للبنود: quantity REAL, unit_price REAL, discount REAL, total REAL',
+          ],
+          files:['server/db.ts'],
+        },
+        {
+          id:'2-8',
+          title:'إنشاء جدول المدفوعات (payments)',
+          brief:'تتبع كل دفعة مرتبطة بفاتورة بيع أو شراء',
+          priority:'urgent', effort:'20 دقيقة',
+          steps:[
+            'CREATE TABLE payments: id, type (sales|purchase)',
+            'إضافة: invoice_id INTEGER, amount REAL, payment_date TEXT',
+            'إضافة: payment_method (cash|bank|check), reference_number, notes',
+            'إضافة: created_by FK users(id), created_at',
+            'إنشاء index على (type, invoice_id) للبحث السريع',
+          ],
+          files:['server/db.ts'],
+        },
+        {
+          id:'2-9',
+          title:'إنشاء جداول المرتجعات (returns)',
+          brief:'جداول لمرتجعات المبيعات والمشتريات',
+          priority:'important', effort:'20 دقيقة',
+          steps:[
+            'CREATE TABLE sales_returns: id, original_invoice_id FK, customer_id FK',
+            'إضافة: return_date, reason, total, status (draft|confirmed)',
+            'CREATE TABLE sales_return_items: id, return_id FK, item_id FK, quantity, unit_price, total',
+            'CREATE TABLE purchase_returns: id, original_invoice_id FK, supplier_id FK',
+            'CREATE TABLE purchase_return_items: id, return_id FK, item_id FK, quantity, unit_price, total',
+          ],
+          files:['server/db.ts'],
+        },
+        {
+          id:'2-10',
+          title:'إنشاء جدول الإعدادات (settings)',
+          brief:'جدول key-value لإعدادات النظام',
+          priority:'urgent', effort:'15 دقيقة',
+          steps:[
+            'CREATE TABLE settings: key TEXT PRIMARY KEY, value TEXT',
+            'إدخال قيم افتراضية: company_name, company_address, tax_number',
+            'إضافة: default_tax_rate=15, currency=SAR, invoice_prefix=INV',
+            'إضافة: low_stock_threshold=5, fiscal_year_start',
+          ],
+          files:['server/db.ts'],
+        },
+      ]
+    }
+  ]
+},
+{
+  id:'ph3', color:'#0ea5e9',
+  title:'المرحلة 3 — Backend API: Authentication',
+  sub:'نظام تسجيل الدخول والصلاحيات',
+  groups:[
+    {
+      label:'إنشاء Auth Routes',
+      tasks:[
+        {
+          id:'3-1',
+          title:'كتابة POST /api/v1/auth/login',
+          brief:'endpoint تسجيل الدخول يعيد JWT token',
+          priority:'urgent', effort:'1 ساعة',
+          steps:[
+            'قراءة username و password من request body',
+            'التحقق بـ Zod: { username: z.string().min(1), password: z.string().min(6) }',
+            'البحث عن المستخدم في قاعدة البيانات بالـ username',
+            'مقارنة الباسورد بـ bcrypt.compare()',
+            'إنشاء JWT token يحتوي: { userId, username, role } مع expiry 24h',
+            'إعادة: { token, user: { id, username, fullName, role } }',
+            'في حالة الخطأ: إعادة 401 Unauthorized',
+          ],
+          files:['server/routes/auth.ts'],
+        },
+        {
+          id:'3-2',
+          title:'كتابة GET /api/v1/auth/me',
+          brief:'endpoint للتحقق من صحة الـ token وإعادة بيانات المستخدم الحالي',
+          priority:'urgent', effort:'30 دقيقة',
+          steps:[
+            'قراءة Authorization header: Bearer <token>',
+            'التحقق من صحة الـ JWT بـ jwt.verify()',
+            'البحث عن المستخدم في قاعدة البيانات',
+            'إعادة بيانات المستخدم (بدون password_hash)',
+            'تحديث حقل last_login',
+          ],
+          files:['server/routes/auth.ts'],
+        },
+        {
+          id:'3-3',
+          title:'كتابة Auth Middleware (verifyToken)',
+          brief:'middleware يحمي جميع الـ routes ويتحقق من الـ JWT',
+          priority:'urgent', effort:'30 دقيقة',
+          steps:[
+            'إنشاء server/middleware/auth.ts',
+            'استخراج token من Authorization header',
+            'التحقق منه بـ jwt.verify() وإضافة req.user للـ request',
+            'في حالة عدم وجود token: إعادة 401',
+            'في حالة token منتهي: إعادة 401 مع رسالة "انتهت الجلسة"',
+            'إنشاء checkRole(...roles) middleware للتحقق من الصلاحية',
+          ],
+          files:['server/middleware/auth.ts'],
+        },
+        {
+          id:'3-4',
+          title:'CRUD إدارة المستخدمين (admin فقط)',
+          brief:'endpoints إدارة المستخدمين للمدير فقط',
+          priority:'urgent', effort:'1 ساعة',
+          steps:[
+            'GET /api/v1/users — قائمة المستخدمين (admin only)',
+            'POST /api/v1/users — إنشاء مستخدم جديد مع bcrypt للباسورد',
+            'PUT /api/v1/users/:id — تعديل بيانات أو الدور',
+            'PUT /api/v1/users/:id/password — تغيير كلمة المرور',
+            'DELETE /api/v1/users/:id — تعطيل المستخدم (is_active=0، لا حذف فعلي)',
+            'التحقق: لا يمكن تعطيل آخر admin في النظام',
+          ],
+          files:['server/routes/users.ts'],
+        },
+      ]
+    }
+  ]
+},
+{
+  id:'ph4', color:'#8b5cf6',
+  title:'المرحلة 4 — Backend API: الأصناف والمخازن',
+  sub:'CRUD كامل للأصناف وعمليات المخزون',
+  groups:[
+    {
+      label:'Inventory API',
+      tasks:[
+        {
+          id:'4-1',
+          title:'GET /api/v1/inventory — قائمة الأصناف مع الفلاتر',
+          brief:'endpoint إحضار الأصناف مع دعم البحث والفلترة والترتيب',
+          priority:'urgent', effort:'1 ساعة',
+          steps:[
+            'query params: search, category, status (in_stock|low_stock|out_of_stock)',
+            'query params: warehouse_id, sortBy, sortOrder, page, limit',
+            'بناء SQL ديناميكي بناءً على الفلاتر المرسلة',
+            'حساب status تلقائياً: 0→out_of_stock, ≤min_quantity→low_stock, else→in_stock',
+            'إعادة: { items: [...], total, page, totalPages }',
+            'إضافة GET /api/v1/inventory/categories لإحضار قائمة التصنيفات الفريدة',
+          ],
+          files:['server/routes/inventory.ts'],
+        },
+        {
+          id:'4-2',
+          title:'POST /api/v1/inventory — إنشاء صنف جديد',
+          brief:'endpoint إضافة صنف مع التحقق من الحقول الإلزامية',
+          priority:'urgent', effort:'45 دقيقة',
+          steps:[
+            'Zod schema للتحقق: name (required), sku (required + unique), cost_price, selling_price',
+            'التحقق من عدم تكرار الـ sku أو barcode',
+            'توليد sku تلقائي إذا لم يُرسل (ITM-XXXX)',
+            'إدخال الصنف وإعادة البيانات الكاملة',
+            'تسجيل العملية في audit_log',
+          ],
+          files:['server/routes/inventory.ts','server/schemas/inventory.ts'],
+        },
+        {
+          id:'4-3',
+          title:'PUT /api/v1/inventory/:id و DELETE',
+          brief:'تعديل وحذف الأصناف مع التحقق من الاستخدام',
+          priority:'urgent', effort:'45 دقيقة',
+          steps:[
+            'PUT: تحديث بيانات الصنف مع التحقق من تكرار sku',
+            'التحقق عند تعديل: إذا تغيرت الكمية مباشرة→ تسجيل في stock_movements',
+            'DELETE: منع الحذف إذا استُخدم الصنف في أي فاتورة (soft delete فقط)',
+            'GET /api/v1/inventory/:id — تفاصيل صنف واحد مع حركات المخزون',
+          ],
+          files:['server/routes/inventory.ts'],
+        },
+        {
+          id:'4-4',
+          title:'GET /api/v1/inventory/:id/movements — حركات الصنف',
+          brief:'endpoint لعرض كل حركات دخول وخروج صنف معين',
+          priority:'important', effort:'45 دقيقة',
+          steps:[
+            'إنشاء جدول stock_movements: id, item_id, type (in|out|adjustment), quantity',
+            'إضافة: reference_type (purchase|sale|manual|return), reference_id, note, created_by, created_at',
+            'query: SELECT * FROM stock_movements WHERE item_id=? ORDER BY created_at DESC',
+            'إعادة مع رصيد متراكم لكل حركة',
+            'دعم فلترة بالتاريخ: date_from, date_to',
+          ],
+          files:['server/routes/inventory.ts','server/db.ts'],
+        },
+      ]
+    },
+    {
+      label:'Warehouses API',
+      tasks:[
+        {
+          id:'4-5',
+          title:'CRUD كامل للمخازن GET/POST/PUT/DELETE',
+          brief:'إدارة المخازن مع حساب نسبة الإشغال',
+          priority:'urgent', effort:'1 ساعة',
+          steps:[
+            'GET /api/v1/warehouses — جميع المخازن مع حساب current_stock لكل مخزن',
+            'POST /api/v1/warehouses — إنشاء مخزن جديد',
+            'PUT /api/v1/warehouses/:id — تعديل بيانات المخزن',
+            'DELETE /api/v1/warehouses/:id — منع الحذف إذا يحتوي على أصناف',
+            'إضافة حساب utilization_percentage = (current_stock / capacity) * 100',
+          ],
+          files:['server/routes/warehouses.ts'],
+        },
+      ]
+    }
+  ]
+},
+{
+  id:'ph5', color:'#10b981',
+  title:'المرحلة 5 — Backend API: العملاء والموردون',
+  sub:'CRUD العملاء والموردين مع حساب الأرصدة',
+  groups:[
+    {
+      label:'Customers API',
+      tasks:[
+        {
+          id:'5-1',
+          title:'GET /api/v1/customers — قائمة العملاء مع الفلاتر',
+          brief:'قائمة العملاء مع الرصيد المستحق والبحث',
+          priority:'urgent', effort:'45 دقيقة',
+          steps:[
+            'query params: search, has_balance (true=عملاء بذمم فقط), is_active',
+            'حساب balance من فرق (إجمالي الفواتير - إجمالي المدفوعات) لكل عميل',
+            'GET /api/v1/customers/:id — تفاصيل عميل واحد',
+            'GET /api/v1/customers/:id/invoices — فواتير عميل محدد',
+            'GET /api/v1/customers/:id/payments — مدفوعات عميل محدد',
+            'GET /api/v1/customers/:id/statement — كشف حساب العميل',
+          ],
+          files:['server/routes/customers.ts'],
+        },
+        {
+          id:'5-2',
+          title:'POST/PUT/DELETE للعملاء',
+          brief:'إنشاء وتعديل وحذف العملاء',
+          priority:'urgent', effort:'45 دقيقة',
+          steps:[
+            'POST: Zod schema للتحقق من name (required), phone (optional), credit_limit',
+            'PUT: تعديل بيانات العميل مع منع تعديل الرصيد مباشرة',
+            'DELETE: soft delete فقط (is_active=0) إذا له فواتير',
+            'التحقق من uniqueness الـ phone إذا أُدخل',
+          ],
+          files:['server/routes/customers.ts','server/schemas/customers.ts'],
+        },
+      ]
+    },
+    {
+      label:'Suppliers API',
+      tasks:[
+        {
+          id:'5-3',
+          title:'CRUD كامل للموردين + كشف الحساب',
+          brief:'نفس هيكل العملاء مع خصوصية الموردين',
+          priority:'urgent', effort:'1 ساعة',
+          steps:[
+            'GET /api/v1/suppliers — قائمة الموردين مع الرصيد المستحق دفعه',
+            'GET /api/v1/suppliers/:id/invoices — فواتير مورد محدد',
+            'GET /api/v1/suppliers/:id/statement — كشف حساب المورد',
+            'POST /api/v1/suppliers — إنشاء مورد جديد',
+            'PUT /api/v1/suppliers/:id — تعديل بيانات المورد',
+            'DELETE /api/v1/suppliers/:id — soft delete',
+          ],
+          files:['server/routes/suppliers.ts'],
+        },
+      ]
+    }
+  ]
+},
+{
+  id:'ph6', color:'#f59e0b',
+  title:'المرحلة 6 — Backend API: فواتير المبيعات',
+  sub:'كامل دورة فاتورة البيع مع التأثير على المخزون',
+  groups:[
+    {
+      label:'Sales Invoices API',
+      tasks:[
+        {
+          id:'6-1',
+          title:'GET /api/v1/sales — قائمة فواتير البيع',
+          brief:'إحضار الفواتير مع الفلاتر الشاملة',
+          priority:'urgent', effort:'45 دقيقة',
+          steps:[
+            'query params: customer_id, status, payment_type, date_from, date_to',
+            'query params: search (invoice_number), page, limit, sortBy',
+            'JOIN مع customers لإحضار اسم العميل',
+            'إضافة حقل محسوب: remaining_amount = total - paid_amount',
+            'GET /api/v1/sales/:id — تفاصيل فاتورة واحدة مع بنودها',
+          ],
+          files:['server/routes/sales.ts'],
+        },
+        {
+          id:'6-2',
+          title:'POST /api/v1/sales — إنشاء فاتورة بيع جديدة',
+          brief:'إنشاء الفاتورة مع خصم الكميات من المخزون تلقائياً',
+          priority:'urgent', effort:'2 ساعة',
+          steps:[
+            'Zod schema: customer_id (optional), items (array: item_id, quantity, unit_price, discount)',
+            'التحقق: كل صنف في items موجود في المخزون',
+            'التحقق: كمية كل صنف متوفرة (quantity >= المطلوب)',
+            'حساب: subtotal, discount_amount, tax_amount, total',
+            'توليد invoice_number تلقائي: INV-2026-0001 (متسلسل)',
+            'إدخال رأس الفاتورة في sales_invoices',
+            'إدخال البنود في sales_invoice_items',
+            'خصم الكميات من inventory_items لكل صنف',
+            'تسجيل حركة في stock_movements (type=out, reference_type=sale)',
+            'إذا payment_type=cash: إنشاء سجل في payments تلقائياً',
+            'تحديث balance العميل إذا payment_type=credit',
+            'كل العمليات داخل SQLite transaction واحدة',
+          ],
+          files:['server/routes/sales.ts','server/schemas/sales.ts'],
+        },
+        {
+          id:'6-3',
+          title:'PUT /api/v1/sales/:id — تعديل فاتورة بيع',
+          brief:'تعديل الفاتورة مع إعادة حساب المخزون بشكل صحيح',
+          priority:'urgent', effort:'2 ساعة',
+          steps:[
+            'السماح بالتعديل فقط إذا status=draft أو confirmed (وليس paid)',
+            'إعادة الكميات القديمة للمخزون (reverse old items)',
+            'خصم الكميات الجديدة (apply new items)',
+            'تحديث رأس الفاتورة والبنود',
+            'إعادة حساب الإجماليات',
+            'كل العمليات داخل transaction',
+          ],
+          files:['server/routes/sales.ts'],
+        },
+        {
+          id:'6-4',
+          title:'DELETE + تسجيل الدفعات على فاتورة بيع',
+          brief:'إلغاء الفواتير وتسجيل المدفوعات الجزئية',
+          priority:'urgent', effort:'1 ساعة',
+          steps:[
+            'DELETE /api/v1/sales/:id — تغيير status إلى cancelled وإعادة الكميات للمخزون',
+            'POST /api/v1/sales/:id/payments — تسجيل دفعة على الفاتورة',
+            'التحقق: المبلغ المدفوع لا يتجاوز remaining_amount',
+            'تحديث paid_amount في الفاتورة',
+            'تحديث status تلقائياً: إذا paid_amount=total → status=paid، إذا جزئي → partial',
+            'تحديث balance العميل',
+            'GET /api/v1/sales/:id/payments — سجل مدفوعات فاتورة',
+          ],
+          files:['server/routes/sales.ts'],
+        },
+      ]
+    }
+  ]
+},
+{
+  id:'ph7', color:'#ec4899',
+  title:'المرحلة 7 — Backend API: فواتير المشتريات',
+  sub:'دورة فاتورة الشراء مع التأثير على المخزون',
+  groups:[
+    {
+      label:'Purchase Invoices API',
+      tasks:[
+        {
+          id:'7-1',
+          title:'GET /api/v1/purchases — قائمة فواتير الشراء',
+          brief:'قائمة فواتير الشراء مع نفس فلاتر المبيعات',
+          priority:'urgent', effort:'30 دقيقة',
+          steps:[
+            'query params: supplier_id, status, date_from, date_to, search, page, limit',
+            'JOIN مع suppliers لإحضار اسم المورد',
+            'GET /api/v1/purchases/:id — تفاصيل فاتورة واحدة مع بنودها وبيانات المورد',
+          ],
+          files:['server/routes/purchases.ts'],
+        },
+        {
+          id:'7-2',
+          title:'POST /api/v1/purchases — إنشاء فاتورة شراء',
+          brief:'إنشاء الفاتورة مع إضافة الكميات للمخزون تلقائياً',
+          priority:'urgent', effort:'2 ساعة',
+          steps:[
+            'Zod schema: supplier_id (optional), items (array), payment_type, date, notes',
+            'التحقق: كل item_id موجود في قاعدة البيانات',
+            'حساب الإجماليات: subtotal, discount, tax, total',
+            'توليد invoice_number: PO-2026-0001',
+            'إدخال رأس الفاتورة والبنود داخل transaction',
+            'إضافة الكميات إلى inventory_items لكل صنف',
+            'تحديث cost_price للصنف بمتوسط التكلفة الجديد (Weighted Average)',
+            'تسجيل في stock_movements (type=in, reference_type=purchase)',
+            'إذا cash: إنشاء payment تلقائياً',
+          ],
+          files:['server/routes/purchases.ts'],
+        },
+        {
+          id:'7-3',
+          title:'PUT + DELETE + مدفوعات فواتير الشراء',
+          brief:'تعديل وإلغاء وتسجيل مدفوعات للموردين',
+          priority:'urgent', effort:'1.5 ساعة',
+          steps:[
+            'PUT /api/v1/purchases/:id — reverse القديم + apply الجديد (في transaction)',
+            'DELETE: تغيير status=cancelled + خصم الكميات التي أُضيفت',
+            'POST /api/v1/purchases/:id/payments — تسجيل دفعة للمورد',
+            'GET /api/v1/purchases/:id/payments — سجل المدفوعات',
+            'تحديث balance المورد عند كل دفعة',
+          ],
+          files:['server/routes/purchases.ts'],
+        },
+      ]
+    }
+  ]
+},
+{
+  id:'ph8', color:'#14b8a6',
+  title:'المرحلة 8 — Backend API: الذمم والتقارير والإعدادات',
+  sub:'endpoints التقارير والذمم والإعدادات',
+  groups:[
+    {
+      label:'Accounts & Reports API',
+      tasks:[
+        {
+          id:'8-1',
+          title:'GET /api/v1/reports/dashboard — بيانات لوحة التحكم',
+          brief:'إحصاءات سريعة للـ dashboard في طلب واحد',
+          priority:'urgent', effort:'1 ساعة',
+          steps:[
+            'إجمالي مبيعات اليوم / الشهر / السنة',
+            'إجمالي مشتريات الشهر',
+            'صافي الربح = مبيعات - تكلفة بضاعة مباعة',
+            'عدد الفواتير المعلقة (غير مدفوعة)',
+            'الأصناف منخفضة المخزون (quantity ≤ min_quantity)',
+            'آخر 5 فواتير بيع وآخر 5 فواتير شراء',
+          ],
+          files:['server/routes/reports.ts'],
+        },
+        {
+          id:'8-2',
+          title:'GET /api/v1/reports/sales — تقرير المبيعات',
+          brief:'تقرير المبيعات مع تجميع شهري وفلترة بالتاريخ',
+          priority:'important', effort:'1 ساعة',
+          steps:[
+            'query params: date_from, date_to, customer_id, group_by (day|week|month)',
+            'إعادة: sales_by_period (مصفوفة للرسم البياني)',
+            'إعادة: top_customers (أعلى 10 عملاء)',
+            'إعادة: top_items (أكثر 10 أصناف مبيعاً بالكمية والقيمة)',
+            'إعادة: totals: { gross_sales, discounts, tax, net_sales, returns }',
+          ],
+          files:['server/routes/reports.ts'],
+        },
+        {
+          id:'8-3',
+          title:'GET /api/v1/reports/purchases — تقرير المشتريات',
+          brief:'تقرير المشتريات بنفس هيكل تقرير المبيعات',
+          priority:'important', effort:'45 دقيقة',
+          steps:[
+            'تجميع المشتريات حسب الفترة',
+            'top_suppliers أعلى 10 موردين',
+            'top_purchased_items الأكثر شراءً',
+            'totals: { gross_purchases, discounts, tax, net_purchases }',
+          ],
+          files:['server/routes/reports.ts'],
+        },
+        {
+          id:'8-4',
+          title:'GET /api/v1/reports/receivables و payables — الذمم',
+          brief:'تقرير الذمم مع تصنيف العمر (Aging)',
+          priority:'urgent', effort:'1 ساعة',
+          steps:[
+            'GET /api/v1/reports/receivables — ذمم العملاء',
+            'حساب: current (غير مستحق)، 1-30 يوم، 31-60 يوم، +60 يوم',
+            'GET /api/v1/reports/payables — ذمم الموردين بنفس التصنيف',
+            'إعادة: قائمة العملاء/الموردين مع تفاصيل كل شريحة',
+            'إضافة: total_overdue (متأخر عن الاستحقاق)',
+          ],
+          files:['server/routes/reports.ts'],
+        },
+        {
+          id:'8-5',
+          title:'GET /api/v1/reports/inventory — تقرير المخزون',
+          brief:'قيمة المخزون الكاملة مع تفاصيل كل صنف',
+          priority:'important', effort:'45 دقيقة',
+          steps:[
+            'إجمالي قيمة المخزون = Σ(quantity × cost_price) لكل صنف',
+            'تجميع حسب التصنيف: قائمة التصنيفات مع قيمتها',
+            'قائمة الأصناف منخفضة/منعدمة المخزون',
+            'أبطأ الأصناف حركة (لم يُباع منها شيء خلال 30 يوم)',
+          ],
+          files:['server/routes/reports.ts'],
+        },
+        {
+          id:'8-6',
+          title:'CRUD إعدادات النظام GET/PUT /api/v1/settings',
+          brief:'قراءة وتحديث إعدادات الشركة والنظام',
+          priority:'important', effort:'30 دقيقة',
+          steps:[
+            'GET /api/v1/settings — إعادة كل الإعدادات كـ object { key: value }',
+            'PUT /api/v1/settings — تحديث إعداد واحد أو أكثر',
+            'POST /api/v1/settings/backup — تصدير جميع البيانات كـ JSON',
+            'POST /api/v1/settings/restore — استيراد بيانات من JSON (admin only)',
+          ],
+          files:['server/routes/settings.ts'],
+        },
+      ]
+    }
+  ]
+},
+{
+  id:'ph9', color:'#f97316',
+  title:'المرحلة 9 — ربط Frontend: طبقة API واللوحة',
+  sub:'إنشاء API client وربط صفحة Dashboard',
+  groups:[
+    {
+      label:'إنشاء API Client Layer',
+      tasks:[
+        {
+          id:'9-1',
+          title:'إنشاء src/lib/api.ts — الـ API client المركزي',
+          brief:'كلاس أو مجموعة دوال مركزية لجميع طلبات HTTP',
+          priority:'urgent', effort:'1 ساعة',
+          steps:[
+            'إنشاء دالة apiRequest(method, url, body?) — تتعامل مع fetch',
+            'قراءة الـ token من localStorage تلقائياً وإضافته لكل طلب',
+            'معالجة الأخطاء مركزياً: 401 → redirect لصفحة login',
+            'إنشاء: inventoryApi, salesApi, purchasesApi, customersApi, suppliersApi',
+            'كل module يحتوي على: getAll, getById, create, update, delete',
+            'استخدام TypeScript generics لضمان أنواع الاستجابة',
+          ],
+          files:['src/lib/api.ts'],
+        },
+        {
+          id:'9-2',
+          title:'إنشاء src/hooks/useApi.ts — custom hooks للـ data fetching',
+          brief:'hooks تجمع الطلبات مع حالات loading/error/data',
+          priority:'urgent', effort:'1 ساعة',
+          steps:[
+            'إنشاء useQuery(fetchFn, deps) — يحضر البيانات ويتابع loading/error',
+            'إنشاء useMutation(mutateFn) — لعمليات POST/PUT/DELETE',
+            'useMutation يعيد: { mutate, loading, error, success }',
+            'إنشاء useInventory(), useSales(), usePurchases() كـ wrapper hooks',
+            'إضافة refetch function لإعادة جلب البيانات بعد أي عملية',
+          ],
+          files:['src/hooks/useApi.ts','src/hooks/useInventory.ts'],
+        },
+        {
+          id:'9-3',
+          title:'إنشاء AuthContext وصفحة تسجيل الدخول',
+          brief:'context للمستخدم الحالي + صفحة login احترافية',
+          priority:'urgent', effort:'2 ساعة',
+          steps:[
+            'إنشاء src/context/AuthContext.tsx مع: user, token, login, logout',
+            'حفظ token في localStorage عند تسجيل الدخول',
+            'عند تحميل التطبيق: قراءة token وإرسال GET /api/v1/auth/me للتحقق',
+            'إنشاء src/Login.tsx — صفحة تسجيل الدخول بتصميم يتناسب مع المشروع',
+            'إضافة ProtectedRoute component: يحول لـ login إذا لم يكن مسجلاً',
+            'تعديل App.tsx لإضافة AuthContext.Provider حول كل شيء',
+            'إضافة زر تسجيل الخروج في الـ header مع اسم المستخدم ودوره',
+          ],
+          files:['src/context/AuthContext.tsx','src/Login.tsx','src/App.tsx'],
+        },
+        {
+          id:'9-4',
+          title:'ربط Dashboard.tsx بـ GET /api/v1/reports/dashboard',
+          brief:'استبدال البيانات الوهمية ببيانات حقيقية من الـ API',
+          priority:'urgent', effort:'1.5 ساعة',
+          steps:[
+            'استخدام useQuery لجلب بيانات الـ dashboard عند تحميل الصفحة',
+            'إضافة skeleton loaders أثناء التحميل',
+            'عرض KPI cards بالبيانات الفعلية: إجمالي المبيعات، المشتريات، الأرباح',
+            'عرض قائمة الأصناف منخفضة المخزون',
+            'عرض آخر الفواتير',
+            'إضافة زر Refresh لإعادة جلب البيانات',
+          ],
+          files:['src/Dashboard.tsx'],
+        },
+      ]
+    }
+  ]
+},
+{
+  id:'ph10', color:'#6366f1',
+  title:'المرحلة 10 — ربط Frontend: صفحات الأصناف والمخازن',
+  sub:'استبدال localStorage بطلبات API في App.tsx و Warehouses.tsx',
+  groups:[
+    {
+      label:'ربط صفحة الأصناف',
+      tasks:[
+        {
+          id:'10-1',
+          title:'ربط قائمة الأصناف (Inventory Table) بـ GET /api/v1/inventory',
+          brief:'جلب الأصناف من API مع الفلترة والترتيب والـ pagination',
+          priority:'urgent', effort:'2 ساعة',
+          steps:[
+            'إزالة جميع قراءات localStorage.getItem("inventory_items")',
+            'استخدام useInventory() hook لجلب الأصناف',
+            'إرسال query params عند تغيير البحث أو الفلتر أو الترتيب',
+            'إضافة Pagination component إذا الأصناف > 20',
+            'عرض spinner أثناء التحميل ورسالة خطأ عند الفشل',
+            'Debounce لحقل البحث (500ms) لتقليل عدد الطلبات',
+          ],
+          files:['src/App.tsx'],
+        },
+        {
+          id:'10-2',
+          title:'ربط إضافة/تعديل/حذف الأصناف',
+          brief:'ربط نماذج CRUD بـ API endpoints',
+          priority:'urgent', effort:'1.5 ساعة',
+          steps:[
+            'زر "إضافة صنف" → POST /api/v1/inventory → إغلاق Modal + Refresh القائمة',
+            'زر "تعديل" → تحميل بيانات الصنف في الـ form → PUT /api/v1/inventory/:id',
+            'زر "حذف" → تأكيد → DELETE /api/v1/inventory/:id → Refresh',
+            'عرض رسائل نجاح أو خطأ toast notifications',
+            'معالجة أخطاء التحقق من الـ API وعرضها على الحقول',
+          ],
+          files:['src/App.tsx'],
+        },
+        {
+          id:'10-3',
+          title:'ربط صفحة المخازن (Warehouses.tsx) بالـ API',
+          brief:'استبدال localStorage في Warehouses.tsx بطلبات API',
+          priority:'urgent', effort:'1.5 ساعة',
+          steps:[
+            'جلب المخازن من GET /api/v1/warehouses عند تحميل الصفحة',
+            'عرض نسبة الإشغال الحقيقية من بيانات الـ API',
+            'ربط إضافة مخزن جديد بـ POST /api/v1/warehouses',
+            'ربط تعديل المخزن بـ PUT /api/v1/warehouses/:id',
+            'ربط حذف المخزن بـ DELETE مع عرض خطأ واضح إذا له أصناف',
+          ],
+          files:['src/Warehouses.tsx'],
+        },
+      ]
+    }
+  ]
+},
+{
+  id:'ph11', color:'#10b981',
+  title:'المرحلة 11 — ربط Frontend: فواتير البيع والشراء',
+  sub:'ربط SalesInvoices.tsx و PurchaseInvoices.tsx بالـ API',
+  groups:[
+    {
+      label:'ربط فواتير البيع',
+      tasks:[
+        {
+          id:'11-1',
+          title:'ربط قائمة فواتير البيع بـ GET /api/v1/sales',
+          brief:'جلب الفواتير من API مع الفلاتر والـ pagination',
+          priority:'urgent', effort:'1.5 ساعة',
+          steps:[
+            'إزالة قراءة localStorage.getItem("sales_invoices")',
+            'جلب الفواتير عند التحميل مع دعم الفلاتر: status, date_from, date_to',
+            'عرض اسم العميل (من بيانات الـ API) في جدول الفواتير',
+            'إضافة عمود "المتبقي" = total - paid_amount مع لون مختلف للمتأخرين',
+            'إضافة فلتر سريع للحالة: الكل / مدفوع / غير مدفوع / جزئي',
+          ],
+          files:['src/SalesInvoices.tsx'],
+        },
+        {
+          id:'11-2',
+          title:'ربط نموذج إنشاء/تعديل فاتورة البيع',
+          brief:'form إنشاء الفاتورة مع اختيار العميل والأصناف من API',
+          priority:'urgent', effort:'3 ساعات',
+          steps:[
+            'إضافة dropdown لاختيار العميل من GET /api/v1/customers',
+            'Searchable dropdown للأصناف من GET /api/v1/inventory?status=in_stock',
+            'عند اختيار صنف: عرض السعر تلقائياً وإمكانية تعديله',
+            'حساب الإجمالي في الـ frontend قبل الإرسال (للعرض فقط)',
+            'إرسال POST /api/v1/sales عند الحفظ + إعادة تحميل القائمة',
+            'عرض رقم الفاتورة الجديد في رسالة النجاح',
+            'ربط التعديل بـ PUT /api/v1/sales/:id',
+          ],
+          files:['src/SalesInvoices.tsx'],
+        },
+        {
+          id:'11-3',
+          title:'إضافة واجهة تسجيل الدفعات على فاتورة بيع',
+          brief:'modal لتسجيل دفعة جزئية أو كاملة على فاتورة محددة',
+          priority:'urgent', effort:'1.5 ساعة',
+          steps:[
+            'زر "تسجيل دفعة" في صف الفاتورة يفتح modal',
+            'Modal يعرض: رقم الفاتورة، الإجمالي، المدفوع، المتبقي',
+            'حقل: المبلغ المدفوع (لا يتجاوز المتبقي) + طريقة الدفع + ملاحظة',
+            'إرسال POST /api/v1/sales/:id/payments',
+            'تحديث status الفاتورة في القائمة فوراً',
+            'عرض سجل الدفعات السابقة داخل نفس الـ modal',
+          ],
+          files:['src/SalesInvoices.tsx'],
+        },
+      ]
+    },
+    {
+      label:'ربط فواتير الشراء',
+      tasks:[
+        {
+          id:'11-4',
+          title:'ربط فواتير المشتريات بالـ API كاملاً',
+          brief:'نفس خطوات فواتير البيع مع تغيير العميل بالمورد',
+          priority:'urgent', effort:'4 ساعات',
+          steps:[
+            'إزالة قراءة localStorage.getItem("purchase_invoices")',
+            'جلب الفواتير من GET /api/v1/purchases مع الفلاتر',
+            'ربط نموذج الإنشاء: dropdown للمورد من GET /api/v1/suppliers',
+            'اختيار الأصناف مع تحديث cost_price في الـ form (قيمة افتراضية من آخر شراء)',
+            'إرسال POST /api/v1/purchases عند الحفظ',
+            'إضافة modal تسجيل دفعة للمورد بنفس هيكل البيع',
+            'ربط التعديل والحذف بالـ API',
+          ],
+          files:['src/PurchaseInvoices.tsx'],
+        },
+      ]
+    }
+  ]
+},
+{
+  id:'ph12', color:'#f59e0b',
+  title:'المرحلة 12 — ربط Frontend: العملاء والموردون والتقارير',
+  sub:'صفحات جديدة للعملاء والموردين + ربط Reports.tsx',
+  groups:[
+    {
+      label:'صفحات العملاء والموردين',
+      tasks:[
+        {
+          id:'12-1',
+          title:'إنشاء صفحة src/Customers.tsx — إدارة العملاء',
+          brief:'صفحة جديدة كاملة لإدارة العملاء',
+          priority:'urgent', effort:'3 ساعات',
+          steps:[
+            'جدول العملاء مع البحث والفلترة (has_balance)',
+            'عرض: الاسم، الهاتف، الرصيد المستحق، عدد الفواتير',
+            'Modal إضافة/تعديل عميل (اسم، هاتف، عنوان، حد ائتمان)',
+            'زر "كشف حساب" يفتح modal يعرض كل الفواتير والمدفوعات',
+            'ربط جميع العمليات بـ customersApi',
+            'إضافة الصفحة في App.tsx وربط الـ nav sidebar بها',
+          ],
+          files:['src/Customers.tsx','src/App.tsx'],
+        },
+        {
+          id:'12-2',
+          title:'إنشاء صفحة src/Suppliers.tsx — إدارة الموردين',
+          brief:'صفحة مشابهة للعملاء مع بيانات خاصة بالموردين',
+          priority:'urgent', effort:'2 ساعات',
+          steps:[
+            'جدول الموردين مع البحث والفلترة',
+            'عرض: الاسم، جهة الاتصال، الرصيد المستحق دفعه',
+            'Modal إضافة/تعديل مورد',
+            'زر "كشف حساب" مع تاريخ المشتريات والمدفوعات',
+            'إضافة الصفحة في App.tsx والـ sidebar',
+          ],
+          files:['src/Suppliers.tsx','src/App.tsx'],
+        },
+      ]
+    },
+    {
+      label:'ربط صفحة التقارير',
+      tasks:[
+        {
+          id:'12-3',
+          title:'ربط Reports.tsx بـ API التقارير الكامل',
+          brief:'استبدال البيانات الوهمية بطلبات حقيقية لكل قسم',
+          priority:'important', effort:'3 ساعات',
+          steps:[
+            'إزالة البيانات الوهمية والقراءات من localStorage',
+            'قسم المبيعات: جلب من GET /api/v1/reports/sales مع date picker',
+            'قسم المشتريات: جلب من GET /api/v1/reports/purchases',
+            'قسم المخزون: جلب من GET /api/v1/reports/inventory',
+            'إضافة تبويب جديد "الذمم": عرض receivables و payables',
+            'إضافة فلتر التاريخ (date_from, date_to) ويُرسل مع كل طلب',
+            'تحديث الرسوم البيانية تلقائياً عند تغيير التاريخ',
+          ],
+          files:['src/Reports.tsx'],
+        },
+        {
+          id:'12-4',
+          title:'ربط Settings.tsx بـ /api/v1/settings',
+          brief:'قراءة وحفظ الإعدادات من قاعدة البيانات بدلاً من localStorage',
+          priority:'important', effort:'1.5 ساعة',
+          steps:[
+            'جلب الإعدادات من GET /api/v1/settings عند تحميل الصفحة',
+            'حفظ التعديلات بـ PUT /api/v1/settings',
+            'ربط زر "تصدير البيانات" بـ POST /api/v1/settings/backup (تنزيل JSON)',
+            'ربط زر "استيراد البيانات" بـ POST /api/v1/settings/restore',
+          ],
+          files:['src/Settings.tsx'],
+        },
+      ]
+    }
+  ]
+},
+{
+  id:'ph13', color:'#a78bfa',
+  title:'المرحلة 13 — الميزات الإضافية المهمة',
+  sub:'ميزات تكمل النظام وتجعله جاهزاً للاستخدام الفعلي',
+  groups:[
+    {
+      label:'المرتجعات والضرائب',
+      tasks:[
+        {
+          id:'13-1',
+          title:'صفحة مرتجعات المبيعات + API',
+          brief:'واجهة وـ API لإنشاء مرتجع مبيعات مرتبط بفاتورة أصلية',
+          priority:'important', effort:'3 ساعات',
+          steps:[
+            'POST /api/v1/sales/returns — إنشاء مرتجع مبيعات',
+            'التحقق: الكمية المردودة ≤ الكمية المباعة في الفاتورة الأصلية',
+            'إعادة الكميات للمخزون + تسجيل في stock_movements (type=in, ref=return)',
+            'إنشاء credit note للعميل (تخفيض رصيده)',
+            'إنشاء src/SalesReturns.tsx — صفحة المرتجعات',
+            'زر "مرتجع" في قائمة الفواتير يفتح نموذج المرتجع مع بيانات الفاتورة الأصلية',
+          ],
+          files:['server/routes/returns.ts','src/SalesReturns.tsx'],
+        },
+        {
+          id:'13-2',
+          title:'إضافة حساب الضريبة (VAT 15%) في الفواتير',
+          brief:'تطبيق الضريبة في الـ Backend والـ Frontend',
+          priority:'important', effort:'1 ساعة',
+          steps:[
+            'قراءة default_tax_rate من إعدادات النظام في كل فاتورة',
+            'حساب tax_amount = (subtotal - discount_amount) × (tax_rate / 100)',
+            'total = subtotal - discount_amount + tax_amount',
+            'عرض تفاصيل الضريبة في نموذج الفاتورة (subtotal + ضريبة + الإجمالي)',
+            'إضافة خيار "معفى من الضريبة" لبعض العملاء',
+          ],
+          files:['server/routes/sales.ts','src/SalesInvoices.tsx'],
+        },
+        {
+          id:'13-3',
+          title:'طباعة الفواتير بتصميم احترافي',
+          brief:'قالب طباعة HTML/CSS لكل فاتورة',
+          priority:'important', effort:'2 ساعة',
+          steps:[
+            'إنشاء src/components/InvoicePrint.tsx — مكوّن الطباعة',
+            'القالب يشمل: شعار وبيانات الشركة من الإعدادات',
+            'عرض: بيانات العميل، رقم الفاتورة، التاريخ، الاستحقاق',
+            'جدول الأصناف: الكمية، الوحدة، السعر، الخصم، الإجمالي',
+            'أسفل الفاتورة: المجموع، الخصم، الضريبة، الصافي',
+            'استخدام window.print() مع @media print CSS',
+            'زر طباعة في كل فاتورة وفي صفحة التفاصيل',
+          ],
+          files:['src/components/InvoicePrint.tsx'],
+        },
+      ]
+    },
+    {
+      label:'جودة الكود والتجربة',
+      tasks:[
+        {
+          id:'13-4',
+          title:'إضافة Toast Notifications مركزية',
+          brief:'نظام إشعارات موحد لجميع عمليات النجاح والخطأ',
+          priority:'important', effort:'1 ساعة',
+          steps:[
+            'إنشاء src/context/ToastContext.tsx',
+            'دوال: showSuccess(msg), showError(msg), showWarning(msg)',
+            'مكوّن ToastContainer يعرض الإشعارات في زاوية الشاشة',
+            'إشعارات تختفي تلقائياً بعد 3 ثواني',
+            'استخدامها في جميع عمليات الـ API بدلاً من alert()',
+          ],
+          files:['src/context/ToastContext.tsx','src/components/Toast.tsx'],
+        },
+        {
+          id:'13-5',
+          title:'إضافة تنبيهات المخزون المنخفض',
+          brief:'إشعار تلقائي في الـ header عند وجود أصناف منخفضة',
+          priority:'enhance', effort:'1 ساعة',
+          steps:[
+            'GET /api/v1/inventory/alerts — endpoint يعيد الأصناف منخفضة الكمية',
+            'استدعاء الـ endpoint كل دقيقة في الخلفية (polling)',
+            'عرض badge بالعدد على أيقونة التنبيه في الـ header',
+            'Dropdown يعرض قائمة الأصناف المنخفضة مع رابط لصفحة الأصناف',
+          ],
+          files:['src/App.tsx','server/routes/inventory.ts'],
+        },
+        {
+          id:'13-6',
+          title:'سجل العمليات (Audit Log)',
+          brief:'تتبع كل عملية تعديل أو حذف مع المستخدم المسؤول',
+          priority:'enhance', effort:'1.5 ساعة',
+          steps:[
+            'إنشاء جدول audit_logs: id, user_id, action, entity_type, entity_id, old_data, new_data, created_at',
+            'إضافة تسجيل في كل route يعدل أو يحذف بيانات',
+            'GET /api/v1/audit-logs — صفحة سجل العمليات (admin only)',
+            'عرض: الوقت، المستخدم، العملية، الكيان المتأثر',
+            'إضافة الصفحة في Settings.tsx كتبويب',
+          ],
+          files:['server/routes/auditLog.ts','src/Settings.tsx'],
+        },
+      ]
+    }
+  ]
+}
+];
+
+// ═══════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════
+const STORE_DONE   = 'almunsiq_v3_done';
+const STORE_EXPAND = 'almunsiq_v3_expand';
+const DEFAULT_DONE = ['1-4'];
+
+let doneSet   = new Set(JSON.parse(localStorage.getItem(STORE_DONE)   || JSON.stringify(DEFAULT_DONE)));
+let expandSet = new Set(JSON.parse(localStorage.getItem(STORE_EXPAND) || '[]'));
+
+function saveDone()   { localStorage.setItem(STORE_DONE,   JSON.stringify([...doneSet])); }
+function saveExpand() { localStorage.setItem(STORE_EXPAND, JSON.stringify([...expandSet])); }
+
+// ═══════════════════════════════════════════════════════
+// RENDER
+// ═══════════════════════════════════════════════════════
+function allTasks() {
+  return phases.flatMap(p => p.groups.flatMap(g => g.tasks));
+}
+
+function renderSidebar() {
+  const sidebar = document.getElementById('sidebar');
+  sidebar.innerHTML = `<div class="sidebar-label">المراحل</div>`;
+  phases.forEach(p => {
+    const tasks   = p.groups.flatMap(g => g.tasks);
+    const done    = tasks.filter(t => doneSet.has(t.id)).length;
+    const a = document.createElement('a');
+    a.className = 'nav-item';
+    a.href = '#' + p.id;
+    a.innerHTML = `
+      <div class="nav-dot" style="background:${p.color}"></div>
+      <span style="flex:1;line-height:1.3">${p.title.replace(/المرحلة \d+ — /,'')}</span>
+      <span class="nav-count">${done}/${tasks.length}</span>
+    `;
+    sidebar.appendChild(a);
+  });
+}
+
+function renderMain() {
+  const main = document.getElementById('mainContent');
+  main.innerHTML = '';
+  phases.forEach(p => {
+    const allPhaseTasks = p.groups.flatMap(g => g.tasks);
+    const donePhaseTasks = allPhaseTasks.filter(t => doneSet.has(t.id)).length;
+
+    const section = document.createElement('div');
+    section.className = 'phase-section';
+    section.id = p.id;
+
+    section.innerHTML = `
+      <div class="phase-heading">
+        <div class="phase-badge" style="background:${p.color}22;border:1px solid ${p.color}44;color:${p.color}">
+          ${p.id.replace('ph','')}
+        </div>
+        <div class="phase-title-block">
+          <h2 style="color:${p.color}">${p.title}</h2>
+          <p>${p.sub}</p>
+        </div>
+        <div class="phase-stats">
+          <div class="phase-stat">${donePhaseTasks}/${allPhaseTasks.length} مهمة</div>
+        </div>
+      </div>
+    `;
+
+    p.groups.forEach(g => {
+      const groupDiv = document.createElement('div');
+      groupDiv.className = 'task-group';
+      groupDiv.innerHTML = `<div class="group-label" style="color:${p.color}99">${g.label}</div>`;
+
+      g.tasks.forEach(task => {
+        const isDone   = doneSet.has(task.id);
+        const isExpand = expandSet.has(task.id);
+
+        const pClass = task.priority === 'urgent' ? 'p-urgent' : task.priority === 'important' ? 'p-important' : 'p-enhance';
+        const pLabel = task.priority === 'urgent' ? '🔴 عاجل' : task.priority === 'important' ? '🟡 مهم' : '🟢 تحسين';
+
+        const card = document.createElement('div');
+        card.className = `task-card ${isDone ? 'done' : ''}`;
+        card.id = 'card-' + task.id;
+
+        const filesHTML = task.files ? `
+          <div class="detail-section">
+            <div class="detail-section-title">الملفات المتأثرة</div>
+            <div class="files-row">
+              ${task.files.map(f => `<span class="file-chip">📄 ${f}</span>`).join('')}
+            </div>
+          </div>` : '';
+
+        const notesHTML = task.notes ? `
+          <div class="detail-section">
+            <div class="detail-section-title">ملاحظة</div>
+            <p style="font-size:12px;color:#fbbf24;line-height:1.6">⚠️ ${task.notes}</p>
+          </div>` : '';
+
+        card.innerHTML = `
+          <div class="task-top" onclick="toggleDone('${task.id}')">
+            <div class="task-check">
+              <svg class="check-svg" width="12" height="12" viewBox="0 0 12 12" fill="none">
+                <path d="M2 6l3 3 5-5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <div class="task-main">
+              <div class="task-title">
+                ${task.title}
+                <span class="task-id">${task.id}</span>
+              </div>
+              <div class="task-brief">${task.brief}</div>
+            </div>
+            <div class="task-right">
+              <div class="priority-badge ${pClass}">${pLabel}</div>
+              <div class="effort-badge">⏱ ${task.effort}</div>
+            </div>
+          </div>
+          <div class="task-expand-btn" onclick="toggleExpand('${task.id}')">
+            <span class="expand-arrow ${isExpand ? 'open' : ''}">▾</span>
+            <span>${isExpand ? 'إخفاء التفاصيل' : 'عرض الخطوات التفصيلية'} (${task.steps.length} خطوات)</span>
+          </div>
+          <div class="task-detail ${isExpand ? 'open' : ''}" id="detail-${task.id}">
+            <div class="detail-section">
+              <div class="detail-section-title">الخطوات التفصيلية</div>
+              <ul class="detail-list">
+                ${task.steps.map(s => `<li>${s}</li>`).join('')}
+              </ul>
+            </div>
+            ${filesHTML}
+            ${notesHTML}
+          </div>
+        `;
+
+        groupDiv.appendChild(card);
+      });
+
+      section.appendChild(groupDiv);
+    });
+
+    main.appendChild(section);
+  });
+}
+
+function updateStats() {
+  const tasks   = allTasks();
+  const total   = tasks.length;
+  const done    = tasks.filter(t => doneSet.has(t.id)).length;
+  const urgent  = tasks.filter(t => t.priority === 'urgent' && !doneSet.has(t.id)).length;
+  const imp     = tasks.filter(t => t.priority === 'important' && !doneSet.has(t.id)).length;
+
+  document.getElementById('progFill').style.width  = total ? `${(done/total)*100}%` : '0%';
+  document.getElementById('progLabel').textContent  = `${done} / ${total}`;
+  document.getElementById('ovTotal').textContent    = total;
+  document.getElementById('ovDone').textContent     = done;
+  document.getElementById('ovUrgent').textContent   = urgent;
+  document.getElementById('ovImportant').textContent= imp;
+  document.getElementById('ovPhases').textContent   = phases.length;
+}
+
+function toggleDone(taskId) {
+  if (doneSet.has(taskId)) doneSet.delete(taskId);
+  else doneSet.add(taskId);
+  saveDone();
+
+  const card = document.getElementById('card-' + taskId);
+  if (card) {
+    card.classList.toggle('done', doneSet.has(taskId));
+  }
+  updateStats();
+  renderSidebar(); // update counts
+}
+
+function toggleExpand(taskId) {
+  if (expandSet.has(taskId)) expandSet.delete(taskId);
+  else expandSet.add(taskId);
+  saveExpand();
+
+  const detail = document.getElementById('detail-' + taskId);
+  const btn    = detail?.previousElementSibling;
+  const arrow  = btn?.querySelector('.expand-arrow');
+  const label  = btn?.querySelector('span:last-child');
+  const task   = allTasks().find(t => t.id === taskId);
+
+  if (detail) detail.classList.toggle('open', expandSet.has(taskId));
+  if (arrow)  arrow.classList.toggle('open', expandSet.has(taskId));
+  if (label && task)  label.textContent = expandSet.has(taskId)
+    ? `إخفاء التفاصيل (${task.steps.length} خطوات)`
+    : `عرض الخطوات التفصيلية (${task.steps.length} خطوات)`;
+}
+
+// expose globally
+window.toggleDone   = toggleDone;
+window.toggleExpand = toggleExpand;
+
+// INIT
+renderSidebar();
+renderMain();
+updateStats();
+</script>
+</body>
+</html>
