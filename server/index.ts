@@ -25,9 +25,8 @@ import customersRouter  from "./routes/customers.js";
 import suppliersRouter  from "./routes/suppliers.js";
 import salesRouter      from "./routes/sales.js";
 import purchasesRouter  from "./routes/purchases.js";
-// المراحل القادمة ستُضاف هنا:
-// import reportsRouter    from "./routes/reports.js";
-// import settingsRouter   from "./routes/settings.js";
+import reportsRouter    from "./routes/reports.js";
+import settingsRouter   from "./routes/settings.js";
 
 // ─── إعداد المسارات ───────────────────────────────────────────────────────────
 const __filename = fileURLToPath(import.meta.url);
@@ -107,6 +106,10 @@ app.use("/api/v1/sales", salesRouter);
 
 // المرحلة 7: Purchase Invoices
 app.use("/api/v1/purchases", purchasesRouter);
+
+// المرحلة 8: Reports + Settings
+app.use("/api/v1/reports", reportsRouter);
+app.use("/api/v1/settings", settingsRouter);
 
 // ══════════════════════════════════════════════════════════════════════════════
 // Error Handlers
