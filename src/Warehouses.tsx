@@ -13,6 +13,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { Warehouse as WarehouseType, InventoryItem } from './types';
+import { useWarehouses, useCreateWarehouse, useUpdateWarehouse, useDeleteWarehouse } from './hooks/useApi';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -107,12 +108,10 @@ function FieldGroup({ label, placeholder, type = 'text', value, onChange, requir
 }
 
 export default function Warehouses({ inventoryItems }: Props) {
-  const [warehouses, setWarehouses] = useState<WarehouseType[]>(() => {
-    try {
-      const saved = localStorage.getItem('warehouses');
-      return saved ? JSON.parse(saved) : INITIAL_WAREHOUSES;
-    } catch { return INITIAL_WAREHOUSES; }
-  });
+  const { warehouses = [], loading, error, refetch } = useWarehouses();
+  const createMutation = useCreateWarehouse();
+  const updateMutation = useUpdateWarehouse();
+  const deleteMutation = useDeleteWarehouse();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -121,10 +120,6 @@ export default function Warehouses({ inventoryItems }: Props) {
   const [viewingWh, setViewingWh] = useState<WarehouseType | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [menuOpen, setMenuOpen] = useState<string | null>(null);
-
-  useEffect(() => {
-    localStorage.setItem('warehouses', JSON.stringify(warehouses));
-  }, [warehouses]);
 
   // Click outside to close menu
   useEffect(() => {
@@ -159,38 +154,88 @@ export default function Warehouses({ inventoryItems }: Props) {
     setMenuOpen(null);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!form.name || !form.location) return;
-    const capacity = Math.max(0, parseInt(form.capacity) || 0);
-    if (editingId) {
-      setWarehouses(whs => whs.map(w =>
-        w.id === editingId
-          ? { ...w, name: form.name, location: form.location, manager: form.manager, phone: form.phone, capacity, notes: form.notes, color: form.color }
-          : w
-      ));
-    } else {
-      const newWh: WarehouseType = {
-        id: Math.random().toString(36).substr(2, 9),
-        name: form.name, location: form.location, manager: form.manager,
-        phone: form.phone, capacity, notes: form.notes, color: form.color,
-      };
-      setWarehouses(whs => [newWh, ...whs]);
+
+    const warehouseData = {
+      name: form.name,
+      location: form.location,
+      manager_name: form.manager,
+      phone: form.phone,
+      capacity: Math.max(0, parseInt(form.capacity) || 0),
+      notes: form.notes,
+      color: form.color,
+    };
+
+    try {
+      if (editingId) {
+        await updateMutation.mutate({ id: parseInt(editingId), warehouse: warehouseData });
+        if (updateMutation.success) {
+          alert('تم تحديث المستودع بنجاح');
+          refetch();
+        } else {
+          alert('فشل في تحديث المستودع: ' + updateMutation.error);
+        }
+      } else {
+        await createMutation.mutate(warehouseData);
+        if (createMutation.success) {
+          alert('تم إضافة المستودع بنجاح');
+          refetch();
+        } else {
+          alert('فشل في إضافة المستودع: ' + createMutation.error);
+        }
+      }
+      setIsModalOpen(false);
+      setForm(emptyForm());
+      setEditingId(null);
+    } catch (error) {
+      alert('حدث خطأ غير متوقع');
     }
-    setIsModalOpen(false);
   };
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (!deleteId) return;
-    setWarehouses(whs => whs.filter(w => w.id !== deleteId));
-    if (viewingWh?.id === deleteId) setViewingWh(null);
-    setDeleteId(null);
+
+    try {
+      await deleteMutation.mutate(parseInt(deleteId));
+      if (deleteMutation.success) {
+        alert('تم حذف المستودع بنجاح');
+        refetch();
+      } else {
+        alert('فشل في حذف المستودع: ' + deleteMutation.error);
+      }
+      if (viewingWh?.id === deleteId) setViewingWh(null);
+      setDeleteId(null);
+    } catch (error) {
+      alert('حدث خطأ غير متوقع');
+    }
   };
 
   return (
     <div className="p-4 lg:p-8 space-y-6 flex-1">
+      {loading && (
+        <div className="flex items-center justify-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          <span className="mr-2 text-sm text-on-surface-variant">جاري التحميل...</span>
+        </div>
+      )}
 
-      {/* Stats Bar */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      {error && (
+        <div className="bg-error/10 border border-error/20 rounded-xl p-4 text-center">
+          <p className="text-error font-medium">{error}</p>
+          <button
+            onClick={refetch}
+            className="mt-2 px-4 py-2 bg-error text-white rounded-lg hover:bg-error/90 transition-colors"
+          >
+            إعادة المحاولة
+          </button>
+        </div>
+      )}
+
+      {!loading && !error && (
+        <>
+          {/* Stats Bar */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard label="عدد المستودعات" value={warehouses.length.toString()} icon={<Building2 size={20} />} color="text-primary bg-primary-fixed" bg="bg-primary-fixed/20" />
         <StatCard label="إجمالي الطاقة الاستيعابية" value={`${totalCapacity.toLocaleString('ar-SA')} وحدة`} icon={<Layers size={20} />} color="text-blue-700 bg-blue-100" bg="bg-blue-50" />
         <StatCard label="إجمالي الأصناف المخزنة" value={`${totalItems.toLocaleString('ar-SA')} وحدة`} icon={<Package size={20} />} color="text-green-700 bg-green-100" bg="bg-green-50" />
@@ -578,6 +623,8 @@ export default function Warehouses({ inventoryItems }: Props) {
           </div>
         )}
       </AnimatePresence>
+        </>
+      )}
     </div>
   );
 }

@@ -2,12 +2,13 @@ import React, { useState, useEffect } from 'react';
 import {
   Plus, Filter, ArrowUpDown, Download, Edit2, Trash2, X,
   ChevronRight, ChevronLeft, FileText, Eye, Trash, PackagePlus,
-  Package, ShoppingCart, TrendingDown, Calendar
+  Package, ShoppingCart, TrendingDown, Calendar, CreditCard
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { PurchaseInvoice, InvoiceLineItem, InventoryItem, ItemStatus } from './types';
+import { usePurchases, useCreatePurchase, useUpdatePurchase, useDeletePurchase, useCreatePurchasePayment, useSuppliers, useInventory } from './hooks/useApi';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -20,8 +21,6 @@ function getStatus(quantity: number): ItemStatus {
 }
 
 interface Props {
-  inventoryItems: InventoryItem[];
-  onInventoryUpdate: (items: InventoryItem[]) => void;
 }
 
 const TODAY = new Date().toISOString().split('T')[0];
@@ -89,25 +88,22 @@ function FieldGroup({ label, placeholder, type = 'text', value, onChange }: {
   );
 }
 
-export default function PurchaseInvoices({ inventoryItems, onInventoryUpdate }: Props) {
-  const [invoices, setInvoices] = useState<PurchaseInvoice[]>(() => {
-    const saved = localStorage.getItem('purchase_invoices');
-    if (saved) { try { return JSON.parse(saved); } catch { /* ignore */ } }
-    return INITIAL_INVOICES;
-  });
+export default function PurchaseInvoices({}: Props) {
+  const { invoices = [], loading, error, refetch } = usePurchases();
+  const { suppliers = [] } = useSuppliers();
+  const { items: inventoryItems = [] } = useInventory();
+  const createMutation = useCreatePurchase();
+  const updateMutation = useUpdatePurchase();
+  const deleteMutation = useDeletePurchase();
+  const paymentMutation = useCreatePurchasePayment();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<FormState>(emptyForm());
   const [invoiceToDelete, setInvoiceToDelete] = useState<string | null>(null);
   const [viewingInvoice, setViewingInvoice] = useState<PurchaseInvoice | null>(null);
-
-  useEffect(() => {
-    localStorage.setItem('purchase_invoices', JSON.stringify(invoices));
-  }, [invoices]);
-
-  const totalCost = invoices.reduce((s, inv) => s + inv.totalAmount, 0);
-  const avgInvoice = invoices.length > 0 ? Math.round(totalCost / invoices.length) : 0;
+  const [stockWarning, setStockWarning] = useState<string | null>(null);
+  const [paymentModal, setPaymentModal] = useState<{ invoice: PurchaseInvoice | null; amount: string; method: string; notes: string }>({ invoice: null, amount: '', method: 'cash', notes: '' });
 
   const selectInventoryItem = (index: number, inventoryItemId: string) => {
     const invItem = inventoryItems.find(it => it.id === inventoryItemId);
@@ -145,43 +141,65 @@ export default function PurchaseInvoices({ inventoryItems, onInventoryUpdate }: 
     setIsModalOpen(true);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!form.invoiceNumber || !form.supplier || !form.date) return;
     const items = form.items.map(it => ({ ...it, total: Number(it.quantity) * Number(it.price) }));
     const totalAmount = items.reduce((s, it) => s + it.total, 0);
 
-    if (editingId) {
-      setInvoices(invoices.map(inv =>
-        inv.id === editingId
-          ? { ...inv, invoiceNumber: form.invoiceNumber, supplier: form.supplier, date: form.date, notes: form.notes, items, totalAmount }
-          : inv
-      ));
-    } else {
-      const newInv: PurchaseInvoice = {
-        id: Math.random().toString(36).substr(2, 9),
-        invoiceNumber: form.invoiceNumber, supplier: form.supplier,
-        date: form.date, notes: form.notes, items, totalAmount,
-      };
-      setInvoices([newInv, ...invoices]);
-      const linkedItems = items.filter(it => it.inventoryItemId);
-      if (linkedItems.length > 0) {
-        const updatedInventory = inventoryItems.map(invItem => {
-          const purchased = linkedItems.filter(it => it.inventoryItemId === invItem.id).reduce((s, it) => s + Number(it.quantity), 0);
-          if (purchased === 0) return invItem;
-          const newQty = invItem.quantity + purchased;
-          return { ...invItem, quantity: newQty, status: getStatus(newQty) };
-        });
-        onInventoryUpdate(updatedInventory);
+    const invoiceData = {
+      invoiceNumber: form.invoiceNumber,
+      supplier: form.supplier,
+      date: form.date,
+      notes: form.notes,
+      items,
+      totalAmount,
+    };
+
+    try {
+      if (editingId) {
+        await updateMutation.mutateAsync({ id: editingId, purchase: invoiceData });
+      } else {
+        await createMutation.mutateAsync(invoiceData);
       }
+      setIsModalOpen(false);
+      refetch();
+    } catch (error) {
+      console.error('Error saving invoice:', error);
+      alert('حدث خطأ أثناء حفظ الفاتورة');
     }
-    setIsModalOpen(false);
   };
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (!invoiceToDelete) return;
-    setInvoices(invoices.filter(inv => inv.id !== invoiceToDelete));
-    if (viewingInvoice?.id === invoiceToDelete) setViewingInvoice(null);
-    setInvoiceToDelete(null);
+    try {
+      await deleteMutation.mutateAsync(invoiceToDelete);
+      if (viewingInvoice?.id === invoiceToDelete) setViewingInvoice(null);
+      setInvoiceToDelete(null);
+      refetch();
+    } catch (error) {
+      console.error('Error deleting invoice:', error);
+      alert('حدث خطأ أثناء حذف الفاتورة');
+    }
+  };
+
+  const handlePayment = async () => {
+    if (!paymentModal.invoice || !paymentModal.amount) return;
+    try {
+      await paymentMutation.mutateAsync({
+        id: paymentModal.invoice.id,
+        payment: {
+          amount: parseFloat(paymentModal.amount),
+          method: paymentModal.method,
+          notes: paymentModal.notes,
+        }
+      });
+      setPaymentModal({ invoice: null, amount: '', method: 'cash', notes: '' });
+      refetch();
+      alert('تم إضافة الدفعة بنجاح');
+    } catch (error) {
+      console.error('Error adding payment:', error);
+      alert('حدث خطأ أثناء إضافة الدفعة');
+    }
   };
 
   return (
@@ -315,6 +333,9 @@ export default function PurchaseInvoices({ inventoryItems, onInventoryUpdate }: 
                         <button onClick={e => { e.stopPropagation(); setViewingInvoice(inv); }} className="p-2 text-on-surface-variant/50 hover:text-violet-600 hover:bg-violet-50 rounded-xl transition-all">
                           <Eye size={15} />
                         </button>
+                        <button onClick={e => { e.stopPropagation(); setPaymentModal({ invoice: inv, amount: '', method: 'cash', notes: '' }); }} className="p-2 text-on-surface-variant/50 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all">
+                          <CreditCard size={15} />
+                        </button>
                         <button onClick={e => { e.stopPropagation(); openEdit(inv); }} className="p-2 text-on-surface-variant/50 hover:text-primary hover:bg-primary-fixed/50 rounded-xl transition-all">
                           <Edit2 size={15} />
                         </button>
@@ -372,7 +393,19 @@ export default function PurchaseInvoices({ inventoryItems, onInventoryUpdate }: 
               <div className="flex-1 overflow-y-auto p-5 space-y-5">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <FieldGroup label="رقم الفاتورة *" placeholder="مثال: PO-2025-003" value={form.invoiceNumber} onChange={v => setForm({ ...form, invoiceNumber: v })} />
-                  <FieldGroup label="المورد *" placeholder="اسم الشركة أو المورد" value={form.supplier} onChange={v => setForm({ ...form, supplier: v })} />
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-on-surface-variant">المورد *</label>
+                    <select
+                      value={form.supplier}
+                      onChange={e => setForm({ ...form, supplier: e.target.value })}
+                      className="w-full bg-surface-container-low border border-surface-container-high rounded-xl px-3 py-2.5 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all text-sm outline-none"
+                    >
+                      <option value="">اختر المورد...</option>
+                      {suppliers.map(supplier => (
+                        <option key={supplier.id} value={supplier.name}>{supplier.name}</option>
+                      ))}
+                    </select>
+                  </div>
                   <FieldGroup label="تاريخ الفاتورة *" placeholder="" type="date" value={form.date} onChange={v => setForm({ ...form, date: v })} />
                   <div className="space-y-1.5">
                     <label className="text-xs font-bold text-on-surface-variant">ملاحظات</label>
@@ -571,6 +604,67 @@ export default function PurchaseInvoices({ inventoryItems, onInventoryUpdate }: 
                   className="px-4 py-2.5 rounded-xl border border-red-200 text-red-600 hover:bg-red-50 transition-colors font-bold">
                   <Trash2 size={15} />
                 </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Payment Modal */}
+      <AnimatePresence>
+        {paymentModal.invoice && (
+          <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              onClick={() => setPaymentModal({ invoice: null, amount: '', method: 'cash', notes: '' })}
+              className="absolute inset-0 bg-black/30 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }}
+              transition={{ type: 'spring', damping: 25, stiffness: 400 }}
+              className="relative z-[80] w-full max-w-md bg-white shadow-2xl rounded-3xl overflow-hidden"
+            >
+              <div className="p-6 border-b border-surface-container-low">
+                <h3 className="text-lg font-extrabold text-on-surface mb-1">إضافة دفعة</h3>
+                <p className="text-sm text-on-surface-variant">فاتورة رقم: {paymentModal.invoice.invoiceNumber}</p>
+              </div>
+              <div className="p-6 space-y-4">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-on-surface-variant">مبلغ الدفعة *</label>
+                  <input
+                    type="number"
+                    placeholder="0.00"
+                    value={paymentModal.amount}
+                    onChange={e => setPaymentModal({ ...paymentModal, amount: e.target.value })}
+                    className="w-full bg-surface-container-low border border-surface-container-high rounded-xl px-3 py-2.5 focus:ring-2 focus:ring-blue-500 transition-all text-sm outline-none"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-on-surface-variant">طريقة الدفع</label>
+                  <select
+                    value={paymentModal.method}
+                    onChange={e => setPaymentModal({ ...paymentModal, method: e.target.value })}
+                    className="w-full bg-surface-container-low border border-surface-container-high rounded-xl px-3 py-2.5 focus:ring-2 focus:ring-blue-500 transition-all text-sm outline-none"
+                  >
+                    <option value="cash">نقدي</option>
+                    <option value="bank_transfer">تحويل بنكي</option>
+                    <option value="check">شيك</option>
+                    <option value="credit_card">بطاقة ائتمان</option>
+                  </select>
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-on-surface-variant">ملاحظات</label>
+                  <textarea
+                    rows={2}
+                    placeholder="أي ملاحظات..."
+                    value={paymentModal.notes}
+                    onChange={e => setPaymentModal({ ...paymentModal, notes: e.target.value })}
+                    className="w-full bg-surface-container-low border border-surface-container-high rounded-xl px-3 py-2.5 focus:ring-2 focus:ring-blue-500 transition-all text-sm outline-none resize-none"
+                  />
+                </div>
+              </div>
+              <div className="p-4 border-t border-surface-container-low flex gap-2">
+                <button onClick={() => setPaymentModal({ invoice: null, amount: '', method: 'cash', notes: '' })} className="flex-1 py-2.5 rounded-xl border border-surface-container-high text-on-surface font-bold text-sm hover:bg-surface-container-low transition-colors">إلغاء</button>
+                <button onClick={handlePayment} disabled={!paymentModal.amount} className="flex-1 py-2.5 rounded-xl bg-blue-600 text-white font-bold text-sm hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">إضافة الدفعة</button>
               </div>
             </motion.div>
           </div>

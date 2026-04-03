@@ -2,64 +2,99 @@ import React, { useMemo } from 'react';
 import {
   TrendingUp, TrendingDown, Package, ShoppingBag, ShoppingCart,
   AlertTriangle, XCircle, ArrowLeft, DollarSign, BarChart3,
-  FileText, Layers, Activity, Clock, Zap, ChevronLeft
+  FileText, Layers, Activity, Clock, Zap, ChevronLeft, RefreshCw
 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { InventoryItem, PurchaseInvoice, SalesInvoice } from './types';
 
+// Import API hooks
+import { useDashboard } from './hooks/useApi';
+
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+// Skeleton Loader Component
+function SkeletonLoader({ className }: { className: string }) {
+  return (
+    <div className={cn('animate-pulse bg-surface-container-low rounded', className)} />
+  );
+}
+
 interface Props {
-  inventoryItems: InventoryItem[];
   onNavigate: (page: string) => void;
 }
 
-export default function Dashboard({ inventoryItems, onNavigate }: Props) {
-  const purchaseInvoices = useMemo<PurchaseInvoice[]>(() => {
-    try {
-      const saved = localStorage.getItem('purchase_invoices');
-      return saved ? JSON.parse(saved) : [];
-    } catch { return []; }
-  }, []);
+export default function Dashboard({ onNavigate }: Props) {
+  const { dashboard, loading, error, refetch } = useDashboard();
 
-  const salesInvoices = useMemo<SalesInvoice[]>(() => {
-    try {
-      const saved = localStorage.getItem('sales_invoices');
-      return saved ? JSON.parse(saved) : [];
-    } catch { return []; }
-  }, []);
-
-  const totalInventoryValue = inventoryItems.reduce((s, i) => s + i.price * i.quantity, 0);
-  const totalSales = salesInvoices.reduce((s, inv) => s + inv.totalAmount, 0);
-  const totalPurchases = purchaseInvoices.reduce((s, inv) => s + inv.totalAmount, 0);
+  // Extract data from API response
+  const totalInventoryValue = dashboard?.inventory_value || 0;
+  const totalSales = dashboard?.sales_today || 0;
+  const totalPurchases = dashboard?.purchases_today || 0;
   const grossProfit = totalSales - totalPurchases;
   const profitMargin = totalSales > 0 ? Math.round((grossProfit / totalSales) * 100) : 0;
 
-  const lowStockItems = inventoryItems.filter(i => i.status === 'low-stock');
-  const outOfStockItems = inventoryItems.filter(i => i.status === 'out-of-stock');
-
-  const recentActivity = useMemo(() => {
-    const sales = salesInvoices.map(inv => ({
-      id: inv.id, type: 'sale' as const,
-      label: inv.invoiceNumber, sub: inv.customer,
-      amount: inv.totalAmount, date: inv.date,
-    }));
-    const purchases = purchaseInvoices.map(inv => ({
-      id: inv.id, type: 'purchase' as const,
-      label: inv.invoiceNumber, sub: inv.supplier,
-      amount: inv.totalAmount, date: inv.date,
-    }));
-    return [...sales, ...purchases]
-      .sort((a, b) => b.date.localeCompare(a.date))
-      .slice(0, 7);
-  }, [salesInvoices, purchaseInvoices]);
+  const lowStockItems = dashboard?.low_stock_items || [];
+  const outOfStockItems = dashboard?.out_of_stock_items || [];
+  const recentActivity = dashboard?.recent_activity || [];
 
   const hour = new Date().getHours();
   const greeting = hour < 12 ? 'صباح الخير' : hour < 17 ? 'مساء الخير' : 'مساء النور';
+
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="p-4 lg:p-6 space-y-5">
+        {/* Welcome Banner Skeleton */}
+        <SkeletonLoader className="h-32 rounded-2xl" />
+
+        {/* KPI Cards Skeleton */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <SkeletonLoader key={i} className="h-24 rounded-2xl" />
+          ))}
+        </div>
+
+        {/* Main Content Skeleton */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div className="space-y-3">
+            <SkeletonLoader className="h-6 w-32" />
+            {Array.from({ length: 4 }).map((_, i) => (
+              <SkeletonLoader key={i} className="h-16 rounded-xl" />
+            ))}
+          </div>
+          <div className="lg:col-span-2">
+            <SkeletonLoader className="h-80 rounded-2xl" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="p-4 lg:p-6 flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <div className="w-16 h-16 bg-red-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <XCircle size={32} className="text-red-600" />
+          </div>
+          <h3 className="text-lg font-bold text-on-surface mb-2">فشل في تحميل البيانات</h3>
+          <p className="text-on-surface-variant mb-4">{error}</p>
+          <button
+            onClick={refetch}
+            className="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-xl hover:bg-primary-hover transition-colors mx-auto"
+          >
+            <RefreshCw size={16} />
+            إعادة المحاولة
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-4 lg:p-6 space-y-5">
@@ -74,10 +109,20 @@ export default function Dashboard({ inventoryItems, onNavigate }: Props) {
           <h3 className="text-xl lg:text-2xl font-extrabold text-white">مرحباً بك في المُنسق</h3>
           <p className="text-blue-200 text-sm mt-1.5">إليك ملخص شامل لنشاط عملك اليوم</p>
         </div>
-        <div className="relative flex items-center gap-2 bg-white/15 backdrop-blur-sm border border-white/20 rounded-xl px-4 py-2.5 w-fit">
-          <Activity size={15} className="text-emerald-300" />
-          <span className="text-xs font-bold text-white">النظام يعمل بشكل طبيعي</span>
-          <span className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" />
+        <div className="relative flex items-center gap-2">
+          <button
+            onClick={refetch}
+            disabled={loading}
+            className="flex items-center gap-2 bg-white/15 backdrop-blur-sm border border-white/20 rounded-xl px-3 py-2 text-xs font-bold text-white hover:bg-white/20 transition-colors disabled:opacity-50"
+          >
+            <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
+            تحديث
+          </button>
+          <div className="flex items-center gap-2 bg-white/15 backdrop-blur-sm border border-white/20 rounded-xl px-4 py-2.5 w-fit">
+            <Activity size={15} className="text-emerald-300" />
+            <span className="text-xs font-bold text-white">النظام يعمل بشكل طبيعي</span>
+            <span className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" />
+          </div>
         </div>
       </div>
 
@@ -87,7 +132,7 @@ export default function Dashboard({ inventoryItems, onNavigate }: Props) {
           label="قيمة المخزون"
           value={`${totalInventoryValue.toLocaleString('ar-SA')}`}
           unit="ر.س"
-          sub={`${inventoryItems.length} صنف في المخزون`}
+          sub={`${dashboard?.inventory_count || 0} صنف في المخزون`}
           icon={<Layers size={20} />}
           gradient="from-blue-600 to-blue-700"
           iconBg="bg-white/20"
@@ -98,7 +143,7 @@ export default function Dashboard({ inventoryItems, onNavigate }: Props) {
           label="إجمالي المبيعات"
           value={`${totalSales.toLocaleString('ar-SA')}`}
           unit="ر.س"
-          sub={`${salesInvoices.length} فاتورة مبيعات`}
+          sub={`${dashboard?.sales_count_today || 0} فاتورة مبيعات`}
           icon={<TrendingUp size={20} />}
           gradient="from-emerald-500 to-emerald-600"
           iconBg="bg-white/20"
@@ -109,7 +154,7 @@ export default function Dashboard({ inventoryItems, onNavigate }: Props) {
           label="إجمالي المشتريات"
           value={`${totalPurchases.toLocaleString('ar-SA')}`}
           unit="ر.س"
-          sub={`${purchaseInvoices.length} فاتورة مشتريات`}
+          sub={`${dashboard?.purchases_count_today || 0} فاتورة مشتريات`}
           icon={<ShoppingCart size={20} />}
           gradient="from-violet-500 to-violet-600"
           iconBg="bg-white/20"
@@ -141,7 +186,7 @@ export default function Dashboard({ inventoryItems, onNavigate }: Props) {
           <QuickLink
             icon={<Package size={18} />}
             label="إدارة الأصناف"
-            sub={`${inventoryItems.length} صنف في المخزون`}
+            sub={`${dashboard?.inventory_count || 0} صنف في المخزون`}
             color="bg-blue-50 text-blue-700"
             hoverColor="hover:bg-blue-100"
             onClick={() => onNavigate('inventory')}
@@ -149,7 +194,7 @@ export default function Dashboard({ inventoryItems, onNavigate }: Props) {
           <QuickLink
             icon={<ShoppingBag size={18} />}
             label="فواتير المبيعات"
-            sub={`${salesInvoices.length} فاتورة – ${totalSales.toLocaleString('ar-SA')} ر.س`}
+            sub={`${dashboard?.sales_count_today || 0} فاتورة – ${totalSales.toLocaleString('ar-SA')} ر.س`}
             color="bg-emerald-50 text-emerald-700"
             hoverColor="hover:bg-emerald-100"
             onClick={() => onNavigate('sales')}
@@ -157,7 +202,7 @@ export default function Dashboard({ inventoryItems, onNavigate }: Props) {
           <QuickLink
             icon={<ShoppingCart size={18} />}
             label="فواتير المشتريات"
-            sub={`${purchaseInvoices.length} فاتورة – ${totalPurchases.toLocaleString('ar-SA')} ر.س`}
+            sub={`${dashboard?.purchases_count_today || 0} فاتورة – ${totalPurchases.toLocaleString('ar-SA')} ر.س`}
             color="bg-violet-50 text-violet-700"
             hoverColor="hover:bg-violet-100"
             onClick={() => onNavigate('purchases')}
@@ -210,14 +255,14 @@ export default function Dashboard({ inventoryItems, onNavigate }: Props) {
                       {act.type === 'sale' ? <ShoppingBag size={16} /> : <ShoppingCart size={16} />}
                     </div>
                     <div>
-                      <p className="text-sm font-bold text-on-surface font-mono">{act.label}</p>
-                      <p className="text-[11px] text-on-surface-variant">{act.sub}</p>
+                      <p className="text-sm font-bold text-on-surface font-mono">{act.invoice_number}</p>
+                      <p className="text-[11px] text-on-surface-variant">{act.customer_name || act.supplier_name}</p>
                     </div>
                   </div>
                   <div className="text-left flex items-center gap-2">
                     <div>
                       <p className={cn('text-sm font-extrabold', act.type === 'sale' ? 'text-emerald-700' : 'text-violet-700')}>
-                        {act.type === 'sale' ? '+' : '-'}{act.amount.toLocaleString('ar-SA')} ر.س
+                        {act.type === 'sale' ? '+' : '-'}{act.total.toLocaleString('ar-SA')} ر.س
                       </p>
                       <p className="text-[11px] text-on-surface-variant text-left">{act.date}</p>
                     </div>

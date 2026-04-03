@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import {
   Search, Filter, Download, Plus, Edit2, Trash2, X,
   TrendingUp, AlertTriangle, XCircle, Layers,
@@ -9,6 +9,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { InventoryItem, ItemStatus } from './types';
+import { useInventory, useCreateInventory, useUpdateInventory, useDeleteInventory } from './hooks/useApi';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -77,13 +78,16 @@ function StatCard({ label, value, sub, icon, color, onClick, active }: StatCardP
 }
 
 interface InventoryProps {
-  items: InventoryItem[];
-  setItems: React.Dispatch<React.SetStateAction<InventoryItem[]>>;
   searchQuery: string;
   setSearchQuery: React.Dispatch<React.SetStateAction<string>>;
 }
 
-export default function Inventory({ items, setItems, searchQuery, setSearchQuery }: InventoryProps) {
+export default function Inventory({ searchQuery, setSearchQuery }: InventoryProps) {
+  const { items = [], loading, error, refetch } = useInventory();
+  const createMutation = useCreateInventory();
+  const updateMutation = useUpdateInventory();
+  const deleteMutation = useDeleteInventory();
+
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [formData, setFormData] = useState<Partial<InventoryItem>>({});
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -94,6 +98,14 @@ export default function Inventory({ items, setItems, searchQuery, setSearchQuery
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isSortOpen, setIsSortOpen] = useState(false);
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState(searchQuery);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   const totalItems = items.length;
   const inStockCount = items.filter(i => i.status === 'in-stock').length;
@@ -103,7 +115,7 @@ export default function Inventory({ items, setItems, searchQuery, setSearchQuery
 
   const displayedItems = useMemo(() => {
     let result = items.filter(item => {
-      const q = searchQuery.trim().toLowerCase();
+      const q = debouncedSearchQuery.trim().toLowerCase();
       const matchSearch = !q ||
         item.name.toLowerCase().includes(q) ||
         item.sku.toLowerCase().includes(q) ||
@@ -119,7 +131,7 @@ export default function Inventory({ items, setItems, searchQuery, setSearchQuery
       return sortOrder === 'asc' ? cmp : -cmp;
     });
     return result;
-  }, [items, searchQuery, filterStatus, sortBy, sortOrder]);
+  }, [items, debouncedSearchQuery, filterStatus, sortBy, sortOrder]);
 
   const getStatus = (quantity: number): ItemStatus => {
     if (quantity <= 0) return 'out-of-stock';
@@ -127,38 +139,60 @@ export default function Inventory({ items, setItems, searchQuery, setSearchQuery
     return 'in-stock';
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!formData.name || !formData.sku) return;
-    const quantity = Number(formData.quantity) || 0;
-    const price = Number(formData.price) || 0;
-    const status = getStatus(quantity);
 
-    if (editingId) {
-      setItems(items.map(item =>
-        item.id === editingId ? { ...item, ...formData, quantity, price, status } as InventoryItem : item
-      ));
-    } else {
-      const newItem: InventoryItem = {
-        id: Math.random().toString(36).substr(2, 9),
-        name: formData.name || '',
-        category: formData.category || 'غير محدد',
-        sku: formData.sku || '',
-        quantity,
-        price,
-        barcode: formData.barcode || '',
-        status,
-        notes: formData.notes || ''
-      };
-      setItems([newItem, ...items]);
+    const itemData = {
+      name: formData.name,
+      sku: formData.sku,
+      category: formData.category || 'غير محدد',
+      quantity: Number(formData.quantity) || 0,
+      price: Number(formData.price) || 0,
+      barcode: formData.barcode || '',
+      notes: formData.notes || ''
+    };
+
+    try {
+      if (editingId) {
+        await updateMutation.mutate({ id: parseInt(editingId), item: itemData });
+        if (updateMutation.success) {
+          alert('تم تحديث الصنف بنجاح');
+          refetch();
+        } else {
+          alert('فشل في تحديث الصنف: ' + updateMutation.error);
+        }
+      } else {
+        await createMutation.mutate(itemData);
+        if (createMutation.success) {
+          alert('تم إضافة الصنف بنجاح');
+          refetch();
+        } else {
+          alert('فشل في إضافة الصنف: ' + createMutation.error);
+        }
+      }
+      setIsDrawerOpen(false);
+      setFormData({});
+      setEditingId(null);
+    } catch (error) {
+      alert('حدث خطأ غير متوقع');
     }
-    setIsDrawerOpen(false);
   };
 
-  const confirmDelete = () => {
-    if (itemToDelete) {
-      setItems(items.filter(item => item.id !== itemToDelete));
+  const confirmDelete = async () => {
+    if (!itemToDelete) return;
+
+    try {
+      await deleteMutation.mutate(parseInt(itemToDelete));
+      if (deleteMutation.success) {
+        alert('تم حذف الصنف بنجاح');
+        refetch();
+      } else {
+        alert('فشل في حذف الصنف: ' + deleteMutation.error);
+      }
       setItemToDelete(null);
       if (viewingItem?.id === itemToDelete) setViewingItem(null);
+    } catch (error) {
+      alert('حدث خطأ غير متوقع');
     }
   };
 
@@ -176,20 +210,41 @@ export default function Inventory({ items, setItems, searchQuery, setSearchQuery
 
   return (
     <div className="p-4 lg:p-6 space-y-5">
-      {/* Mobile Search */}
-      <div className="flex md:hidden relative">
-        <Search size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant/60" />
-        <input
-          type="text"
-          placeholder="بحث في الأصناف..."
-          value={searchQuery}
-          onChange={e => setSearchQuery(e.target.value)}
-          className="w-full bg-white border border-surface-container-high rounded-xl pr-9 pl-4 py-2.5 focus:ring-2 focus:ring-primary transition-all text-sm outline-none shadow-sm"
-        />
-      </div>
+      {loading && (
+        <div className="flex items-center justify-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          <span className="mr-2 text-sm text-on-surface-variant">جاري التحميل...</span>
+        </div>
+      )}
 
-      {/* Stat Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      {error && (
+        <div className="bg-error/10 border border-error/20 rounded-xl p-4 text-center">
+          <p className="text-error font-medium">{error}</p>
+          <button
+            onClick={refetch}
+            className="mt-2 px-4 py-2 bg-error text-white rounded-lg hover:bg-error/90 transition-colors"
+          >
+            إعادة المحاولة
+          </button>
+        </div>
+      )}
+
+      {!loading && !error && (
+        <>
+          {/* Mobile Search */}
+          <div className="flex md:hidden relative">
+            <Search size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant/60" />
+            <input
+              type="text"
+              placeholder="بحث في الأصناف..."
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              className="w-full bg-white border border-surface-container-high rounded-xl pr-9 pl-4 py-2.5 focus:ring-2 focus:ring-primary transition-all text-sm outline-none shadow-sm"
+            />
+          </div>
+
+          {/* Stat Cards */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <StatCard
           label="إجمالي الأصناف"
           value={totalItems.toString()}
@@ -722,6 +777,8 @@ export default function Inventory({ items, setItems, searchQuery, setSearchQuery
           </div>
         )}
       </AnimatePresence>
+        </>
+      )}
     </div>
   );
 }

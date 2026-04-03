@@ -17,44 +17,18 @@ import Inventory from './Inventory';
 import SettingsPage from './Settings';
 import UsersPage from './Users';
 
+// Import auth components
+import { AuthProvider, useAuth } from './context/AuthContext';
+import Login from './Login';
+
+// Import API hooks
+import { useInventory } from './hooks/useApi';
+
 type Page = 'dashboard' | 'inventory' | 'purchases' | 'sales' | 'reports' | 'warehouses' | 'users' | 'settings';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
-
-const INITIAL_ITEMS: InventoryItem[] = [
-  {
-    id: '01',
-    name: 'آيفون 15 برو ماكس',
-    category: 'إلكترونيات / هواتف',
-    sku: 'APP-IP15-PM',
-    quantity: 24,
-    price: 5200,
-    barcode: '123456789',
-    status: 'in-stock',
-  },
-  {
-    id: '02',
-    name: 'سماعات سوني WH-1000XM5',
-    category: 'إلكترونيات / صوتيات',
-    sku: 'SONY-WH5-BLK',
-    quantity: 5,
-    price: 1400,
-    barcode: '987654321',
-    status: 'low-stock',
-  },
-  {
-    id: '03',
-    name: 'ماك بوك برو M3',
-    category: 'أجهزة / حواسيب',
-    sku: 'APP-MBP-M3',
-    quantity: 0,
-    price: 8500,
-    barcode: '456789123',
-    status: 'out-of-stock',
-  }
-];
 
 interface NavItemProps {
   icon: React.ReactNode;
@@ -173,14 +147,31 @@ function StatCard({ label, value, sub, icon, color, onClick, active }: StatCardP
   );
 }
 
-export default function App() {
-  const [items, setItems] = useState<InventoryItem[]>(() => {
-    const saved = localStorage.getItem('inventory_items');
-    if (saved) {
-      try { return JSON.parse(saved); } catch (e) { console.error(e); }
-    }
-    return INITIAL_ITEMS;
-  });
+// Protected Route Component
+function ProtectedRoute({ children }: { children: React.ReactNode }) {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-on-surface-variant">جاري التحميل...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <Login />;
+  }
+
+  return <>{children}</>;
+}
+
+// Main App Component (without auth logic)
+function AppContent() {
+  const { data: inventoryItems = [], isLoading: inventoryLoading, refetch: refetchInventory } = useInventory();
 
   const [currentPage, setCurrentPage] = useState<Page>('dashboard');
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -191,12 +182,14 @@ export default function App() {
     document.documentElement.lang = 'ar';
   }, []);
 
-  useEffect(() => {
-    localStorage.setItem('inventory_items', JSON.stringify(items));
-  }, [items]);
+  const lowStockCount = inventoryItems.filter(i => i.status === 'low-stock').length;
+  const outOfStockCount = inventoryItems.filter(i => i.status === 'out-of-stock').length;
 
-  const lowStockCount = items.filter(i => i.status === 'low-stock').length;
-  const outOfStockCount = items.filter(i => i.status === 'out-of-stock').length;
+  const alertsCount = lowStockCount + outOfStockCount;
+
+  const handleInventoryUpdate = () => {
+    refetchInventory();
+  };
 
   const navigateTo = (page: Page) => {
     setCurrentPage(page);
@@ -213,8 +206,6 @@ export default function App() {
     users: 'إدارة المستخدمين',
     settings: 'الإعدادات',
   };
-
-  const alertsCount = lowStockCount + outOfStockCount;
 
   return (
     <div className="min-h-screen bg-background text-on-surface font-body">
@@ -393,27 +384,27 @@ export default function App() {
           <AnimatePresence mode="wait">
             {currentPage === 'dashboard' && (
               <motion.div key="dashboard" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }}>
-                <Dashboard inventoryItems={items} onNavigate={(page) => setCurrentPage(page as Page)} />
+                <Dashboard inventoryItems={inventoryItems} onNavigate={(page) => setCurrentPage(page as Page)} />
               </motion.div>
             )}
             {currentPage === 'purchases' && (
               <motion.div key="purchases" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }}>
-                <PurchaseInvoices inventoryItems={items} onInventoryUpdate={setItems} />
+                <PurchaseInvoices inventoryItems={inventoryItems} onInventoryUpdate={handleInventoryUpdate} />
               </motion.div>
             )}
             {currentPage === 'sales' && (
               <motion.div key="sales" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }}>
-                <SalesInvoices inventoryItems={items} onInventoryUpdate={setItems} />
+                <SalesInvoices inventoryItems={inventoryItems} onInventoryUpdate={handleInventoryUpdate} />
               </motion.div>
             )}
             {currentPage === 'reports' && (
               <motion.div key="reports" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }}>
-                <Reports inventoryItems={items} />
+                <Reports inventoryItems={inventoryItems} />
               </motion.div>
             )}
             {currentPage === 'warehouses' && (
               <motion.div key="warehouses" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }}>
-                <Warehouses inventoryItems={items} />
+                <Warehouses inventoryItems={inventoryItems} />
               </motion.div>
             )}
             {currentPage === 'users' && (
@@ -429,10 +420,21 @@ export default function App() {
           </AnimatePresence>
 
           {/* Inventory Page */}
-          {currentPage === 'inventory' && <Inventory items={items} setItems={setItems} searchQuery={searchQuery} setSearchQuery={setSearchQuery} />}
+          {currentPage === 'inventory' && <Inventory searchQuery={searchQuery} setSearchQuery={setSearchQuery} />}
         </div>
       </main>
     </div>
+  );
+}
+
+// Main App Component with AuthProvider
+export default function App() {
+  return (
+    <AuthProvider>
+      <ProtectedRoute>
+        <AppContent />
+      </ProtectedRoute>
+    </AuthProvider>
   );
 }
 
