@@ -202,6 +202,11 @@ export default function PurchaseInvoices({}: Props) {
     }
   };
 
+  // Calculate stats
+  const totalInvoices = invoices.length;
+  const totalCost = invoices.reduce((sum, inv) => sum + inv.total, 0);
+  const avgInvoice = totalInvoices > 0 ? totalCost / totalInvoices : 0;
+
   return (
     <div className="p-4 lg:p-6 space-y-5">
 

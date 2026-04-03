@@ -78,7 +78,7 @@ export function useInventory(params?: { search?: string; category?: string; stat
     () => import('../lib/api').then(m => m.inventoryApi.getAll(params)),
     [JSON.stringify(params)]
   );
-  return { items: data, loading, error, refetch };
+  return { items: data?.items || [], loading, error, refetch };
 }
 
 // Sales Hook
@@ -87,7 +87,7 @@ export function useSales(params?: { customer_id?: number; status?: string; payme
     () => import('../lib/api').then(m => m.salesApi.getAll(params)),
     [JSON.stringify(params)]
   );
-  return { invoices: data, loading, error, refetch };
+  return { invoices: data?.invoices || [], loading, error, refetch };
 }
 
 // Purchases Hook
@@ -96,7 +96,7 @@ export function usePurchases(params?: { supplier_id?: number; status?: string; d
     () => import('../lib/api').then(m => m.purchasesApi.getAll(params)),
     [JSON.stringify(params)]
   );
-  return { invoices: data, loading, error, refetch };
+  return { invoices: data?.invoices || [], loading, error, refetch };
 }
 
 // ─── Mutation Hooks ─────────────────────────────────────────────────────────
@@ -126,7 +126,7 @@ export function useWarehouses() {
     () => import('../lib/api').then(m => m.warehousesApi.getAll()),
     []
   );
-  return { warehouses: data, loading, error, refetch };
+  return { warehouses: (data as any)?.warehouses || [], loading, error, refetch };
 }
 
 // Warehouse Mutations

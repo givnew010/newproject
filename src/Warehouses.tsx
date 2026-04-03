@@ -128,8 +128,11 @@ export default function Warehouses({ inventoryItems }: Props) {
     return () => document.removeEventListener('click', handler);
   }, []);
 
-  const totalCapacity = warehouses.reduce((s, w) => s + w.capacity, 0);
-  const totalItems = inventoryItems.reduce((s, i) => s + i.quantity, 0);
+  const safeWarehouses = Array.isArray(warehouses) ? warehouses : [];
+  const safeInventoryItems = Array.isArray(inventoryItems) ? inventoryItems : [];
+
+  const totalCapacity = safeWarehouses.reduce((s, w) => s + (w.capacity || 0), 0);
+  const totalItems = safeInventoryItems.reduce((s, i) => s + (i.quantity || 0), 0);
   const utilizationPercent = totalCapacity > 0 ? Math.min(100, Math.round((totalItems / totalCapacity) * 100)) : 0;
 
   const displayed = warehouses.filter(w => {
@@ -291,8 +294,8 @@ export default function Warehouses({ inventoryItems }: Props) {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {displayed.map(wh => {
-            const c = COLOR_MAP[wh.color];
-            const capPercent = wh.capacity > 0 ? Math.min(100, Math.round((totalItems / warehouses.length / wh.capacity) * 100)) : 0;
+            const c = COLOR_MAP[wh.color] || COLOR_MAP.blue;
+            const capPercent = wh.capacity > 0 ? Math.min(100, Math.round((totalItems / (warehouses.length || 1) / wh.capacity) * 100)) : 0;
             return (
               <motion.div
                 key={wh.id}

@@ -41,7 +41,7 @@ const createInventorySchema = z.object({
   min_quantity: z.number().int().nonnegative().default(0),
   cost_price: z.number().nonnegative().default(0),
   selling_price: z.number().nonnegative().default(0),
-  warehouse_id: z.number().int().positive("معرّف المخزن مطلوب"),
+  warehouse_id: z.number().int().positive("معرّف المخزن مطلوب").optional(),
   is_active: z.number().int().min(0).max(1).default(1),
 });
 
@@ -231,7 +231,17 @@ router.post("/", checkRole("admin"), (req: Request, res: Response) => {
     throw err;
   }
 
-  const warehouse = getWarehouse(parsed.warehouse_id);
+  let warehouseId = parsed.warehouse_id;
+  if (!warehouseId) {
+    const defaultWarehouse = db.prepare("SELECT id FROM warehouses WHERE is_active = 1 ORDER BY id ASC LIMIT 1").get() as { id: number } | undefined;
+    if (!defaultWarehouse) {
+      res.status(400).json({ success: false, error: "لا يوجد مخزن مفعل لإنشاء الصنف" });
+      return;
+    }
+    warehouseId = defaultWarehouse.id;
+  }
+
+  const warehouse = getWarehouse(warehouseId);
   if (!warehouse) {
     res.status(400).json({ success: false, error: "المخزن المحدد غير موجود" });
     return;
@@ -262,7 +272,7 @@ router.post("/", checkRole("admin"), (req: Request, res: Response) => {
       parsed.min_quantity,
       parsed.cost_price,
       parsed.selling_price,
-      parsed.warehouse_id,
+      warehouseId,
       parsed.is_active,
     );
 
@@ -272,7 +282,7 @@ router.post("/", checkRole("admin"), (req: Request, res: Response) => {
 
   // سجل حركة المخزون عند إنشاء الصنف إذا الكمية > 0
   if (parsed.quantity > 0) {
-    createMovement(newItem.id, "in", parsed.quantity, parsed.warehouse_id, (req as any).user.id, "بدء حساب المخزون");
+    createMovement(newItem.id, "in", parsed.quantity, warehouseId, (req as any).user.id, "بدء حساب المخزون");
   }
 
   res.status(201).json({ success: true, data: { item: enrichInventoryItem(newItem) }, message: "تم إنشاء الصنف بنجاح" });
