@@ -32,12 +32,13 @@ router.use(verifyToken);
 // ══════════════════════════════════════════════════════════════════════════════
 
 const createInventorySchema = z.object({
-  name: z.string().min(2, "الاسم يجب أن يحتوي على حرفين على الأقل").max(150, "الاسم طويل جدًا"),
-  sku: z.string().max(50, "SKU طويل جدًا").optional().nullable(),
-  barcode: z.string().max(100, "الباركود طويل جدًا").optional().nullable(),
-  category: z.string().max(100, "التصنيف طويل جدًا").optional().nullable(),
-  unit: z.string().max(20, "وحدة القياس طويلة جدًا").default("pcs"),
+  name: z.string().trim().min(2, "الاسم يجب أن يحتوي على حرفين على الأقل").max(150, "الاسم طويل جدًا"),
+  sku: z.string().trim().min(1, "الرمز SKU مطلوب").max(50, "SKU طويل جدًا"),
+  barcode: z.string().trim().max(100, "الباركود طويل جدًا").optional().nullable(),
+  category: z.string().trim().max(100, "التصنيف طويل جدًا").optional().nullable(),
+  unit: z.string().trim().max(20, "وحدة القياس طويلة جدًا").default("pcs"),
   quantity: z.number().int().nonnegative().default(0),
+  price: z.number().nonnegative().optional(),
   min_quantity: z.number().int().nonnegative().default(0),
   cost_price: z.number().nonnegative().default(0),
   selling_price: z.number().nonnegative().default(0),
@@ -46,6 +47,7 @@ const createInventorySchema = z.object({
 });
 
 const updateInventorySchema = createInventorySchema.partial().extend({
+  price: z.number().nonnegative().optional(),
   is_active: z.number().int().min(0).max(1).optional(),
 });
 
@@ -70,6 +72,17 @@ function handleZodError(err: ZodError, res: Response): void {
     error: "بيانات غير صالحة",
     details: err.issues.map((e) => ({ field: e.path.join("."), message: e.message })),
   });
+}
+
+function normalizeOptionalString(value?: string | null): string | null {
+  if (typeof value !== 'string') return null;
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : null;
+}
+
+function normalizeTextWithDefault(value: string | undefined | null, defaultValue: string): string {
+  const normalized = normalizeOptionalString(value);
+  return normalized ?? defaultValue;
 }
 
 function getInventoryItem(id: number): DbInventoryItem | undefined {
@@ -102,26 +115,33 @@ function createMovement(
   itemId: number,
   type: MovementType,
   quantity: number,
-  warehouseId: number,
   userId: number,
   note?: string,
-): InventoryMovement {
+) {
+  const item = db.prepare("SELECT quantity FROM inventory_items WHERE id = ?").get(itemId) as { quantity: number } | undefined;
+  if (!item) {
+    throw new Error(`الصنف ${itemId} غير موجود لإنشاء حركة المخزون`);
+  }
+
+  const balanceAfter = item.quantity;
   const timestamp = new Date().toISOString();
 
   const result = db.prepare(`
-    INSERT INTO inventory_movements
-      (inventory_item_id, movement_type, quantity, warehouse_id, user_id, note, created_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?)
-  `).run(itemId, type, quantity, warehouseId, userId, note ?? null, timestamp);
+    INSERT INTO stock_movements
+      (item_id, type, quantity, balance_after, reference_type, reference_id, note, created_by, created_at)
+    VALUES (?, ?, ?, ?, 'manual', ?, ?, ?, ?)
+  `).run(itemId, type, quantity, balanceAfter, itemId, note ?? null, userId, timestamp);
 
   return {
     id: result.lastInsertRowid as number,
-    inventory_item_id: itemId,
-    movement_type: type,
+    item_id: itemId,
+    type,
     quantity,
-    warehouse_id: warehouseId,
-    user_id: userId,
+    balance_after: balanceAfter,
+    reference_type: 'manual',
+    reference_id: itemId,
     note: note ?? null,
+    created_by: userId,
     created_at: timestamp,
   };
 }
@@ -220,16 +240,17 @@ router.get("/:id", (req: Request, res: Response) => {
 });
 
 router.post("/", checkRole("admin"), (req: Request, res: Response) => {
-  let parsed: z.infer<typeof createInventorySchema>;
   try {
-    parsed = createInventorySchema.parse(req.body);
-  } catch (err) {
-    if (err instanceof ZodError) {
-      handleZodError(err, res);
-      return;
+    let parsed: z.infer<typeof createInventorySchema>;
+    try {
+      parsed = createInventorySchema.parse(req.body);
+    } catch (err) {
+      if (err instanceof ZodError) {
+        handleZodError(err, res);
+        return;
+      }
+      throw err;
     }
-    throw err;
-  }
 
   let warehouseId = parsed.warehouse_id;
   if (!warehouseId) {
@@ -247,13 +268,40 @@ router.post("/", checkRole("admin"), (req: Request, res: Response) => {
     return;
   }
 
-  const existing = db
-    .prepare("SELECT id FROM inventory_items WHERE name = ? AND warehouse_id = ?")
-    .get(parsed.name, parsed.warehouse_id);
+  const sku = normalizeOptionalString(parsed.sku);
+  const barcode = normalizeOptionalString(parsed.barcode);
+  const category = normalizeTextWithDefault(parsed.category, 'غير محدد');
+  const unit = normalizeTextWithDefault(parsed.unit, 'pcs');
+  const costPrice = parsed.cost_price ?? parsed.price ?? 0;
+  const sellingPrice = parsed.selling_price ?? parsed.price ?? 0;
 
-  if (existing) {
+  const existingName = db
+    .prepare("SELECT id FROM inventory_items WHERE name = ? AND warehouse_id = ?")
+    .get(parsed.name, warehouseId);
+
+  if (existingName) {
     res.status(409).json({ success: false, error: "الصنف موجود بالفعل في نفس المخزن" });
     return;
+  }
+
+  const existingSku = db
+    .prepare("SELECT id FROM inventory_items WHERE sku = ?")
+    .get(sku);
+
+  if (existingSku) {
+    res.status(409).json({ success: false, error: "الرمز SKU مستخدم بالفعل" });
+    return;
+  }
+
+  if (barcode) {
+    const existingBarcode = db
+      .prepare("SELECT id FROM inventory_items WHERE barcode = ?")
+      .get(barcode);
+
+    if (existingBarcode) {
+      res.status(409).json({ success: false, error: "الباركود مستخدم بالفعل" });
+      return;
+    }
   }
 
   const result = db
@@ -264,14 +312,14 @@ router.post("/", checkRole("admin"), (req: Request, res: Response) => {
     `)
     .run(
       parsed.name,
-      parsed.sku ?? null,
-      parsed.barcode ?? null,
-      parsed.category ?? null,
-      parsed.unit,
+      sku,
+      barcode,
+      category,
+      unit,
       parsed.quantity,
       parsed.min_quantity,
-      parsed.cost_price,
-      parsed.selling_price,
+      costPrice,
+      sellingPrice,
       warehouseId,
       parsed.is_active,
     );
@@ -282,10 +330,14 @@ router.post("/", checkRole("admin"), (req: Request, res: Response) => {
 
   // سجل حركة المخزون عند إنشاء الصنف إذا الكمية > 0
   if (parsed.quantity > 0) {
-    createMovement(newItem.id, "in", parsed.quantity, warehouseId, (req as any).user.id, "بدء حساب المخزون");
+    createMovement(newItem.id, "in", parsed.quantity, (req as any).user.userId, "بدء حساب المخزون");
   }
 
   res.status(201).json({ success: true, data: { item: enrichInventoryItem(newItem) }, message: "تم إنشاء الصنف بنجاح" });
+  } catch (error) {
+    console.error("Error creating inventory item:", error);
+    res.status(500).json({ success: false, error: "خطأ داخلي في السيرفر" });
+  }
 });
 
 router.put("/:id", checkRole("admin"), (req: Request, res: Response) => {
@@ -317,6 +369,38 @@ router.put("/:id", checkRole("admin"), (req: Request, res: Response) => {
     if (!warehouse) {
       res.status(400).json({ success: false, error: "المخزن المحدد غير موجود" });
       return;
+    }
+  }
+
+  if (parsed.sku !== undefined) {
+    const normalizedSku = normalizeOptionalString(parsed.sku);
+    if (!normalizedSku) {
+      res.status(400).json({ success: false, error: "الرمز SKU غير صالح" });
+      return;
+    }
+    parsed.sku = normalizedSku;
+
+    const existingSku = db
+      .prepare("SELECT id FROM inventory_items WHERE sku = ? AND id != ?")
+      .get(normalizedSku, id);
+
+    if (existingSku) {
+      res.status(409).json({ success: false, error: "الرمز SKU مستخدم بالفعل" });
+      return;
+    }
+  }
+
+  if (parsed.barcode !== undefined) {
+    parsed.barcode = normalizeOptionalString(parsed.barcode);
+    if (parsed.barcode) {
+      const existingBarcode = db
+        .prepare("SELECT id FROM inventory_items WHERE barcode = ? AND id != ?")
+        .get(parsed.barcode, id);
+
+      if (existingBarcode) {
+        res.status(409).json({ success: false, error: "الباركود مستخدم بالفعل" });
+        return;
+      }
     }
   }
 
@@ -415,7 +499,7 @@ router.post("/:id/adjust-stock", checkRole("admin"), (req: Request, res: Respons
     parsed.movement_type,
     parsed.quantity,
     existing.warehouse_id,
-    (req as any).user.id,
+    (req as any).user.userId,
     parsed.note ?? undefined,
   );
 

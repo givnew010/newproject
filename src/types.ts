@@ -6,7 +6,8 @@ export interface InventoryItem {
   category: string;
   sku: string;
   quantity: number;
-  price: number;
+  cost_price: number;
+  selling_price: number;
   barcode: string;
   status: ItemStatus;
   notes?: string;

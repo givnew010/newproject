@@ -111,7 +111,7 @@ export default function Inventory({ searchQuery, setSearchQuery }: InventoryProp
   const inStockCount = items.filter(i => i.status === 'in-stock').length;
   const lowStockCount = items.filter(i => i.status === 'low-stock').length;
   const outOfStockCount = items.filter(i => i.status === 'out-of-stock').length;
-  const totalValue = items.reduce((s, i) => s + i.price * i.quantity, 0);
+  const totalValue = items.reduce((s, i) => s + (i.selling_price || 0) * (i.quantity || 0), 0);
 
   const displayedItems = useMemo(() => {
     let result = items.filter(item => {
@@ -126,8 +126,8 @@ export default function Inventory({ searchQuery, setSearchQuery }: InventoryProp
     result = [...result].sort((a, b) => {
       let cmp = 0;
       if (sortBy === 'name') cmp = a.name.localeCompare(b.name, 'ar');
-      else if (sortBy === 'quantity') cmp = a.quantity - b.quantity;
-      else if (sortBy === 'price') cmp = a.price - b.price;
+      else if (sortBy === 'quantity') cmp = (a.quantity || 0) - (b.quantity || 0);
+      else if (sortBy === 'selling_price') cmp = (a.selling_price || 0) - (b.selling_price || 0);
       return sortOrder === 'asc' ? cmp : -cmp;
     });
     return result;
@@ -146,28 +146,31 @@ export default function Inventory({ searchQuery, setSearchQuery }: InventoryProp
       name: formData.name,
       sku: formData.sku,
       category: formData.category || 'غير محدد',
+      unit: 'pcs',
       quantity: Number(formData.quantity) || 0,
-      price: Number(formData.price) || 0,
+      min_quantity: 0,
+      cost_price: Number(formData.selling_price) || 0,
+      selling_price: Number(formData.selling_price) || 0,
       barcode: formData.barcode || '',
       notes: formData.notes || ''
     };
 
     try {
       if (editingId) {
-        await updateMutation.mutate({ id: parseInt(editingId), item: itemData });
-        if (updateMutation.success) {
+        const res = await updateMutation.mutate({ id: parseInt(editingId), item: itemData });
+        if (res?.success) {
           alert('تم تحديث الصنف بنجاح');
           refetch();
         } else {
-          alert('فشل في تحديث الصنف: ' + updateMutation.error);
+          alert('فشل في تحديث الصنف: ' + (res?.error || updateMutation.error));
         }
       } else {
-        await createMutation.mutate(itemData);
-        if (createMutation.success) {
+        const res = await createMutation.mutate(itemData);
+        if (res?.success) {
           alert('تم إضافة الصنف بنجاح');
           refetch();
         } else {
-          alert('فشل في إضافة الصنف: ' + createMutation.error);
+          alert('فشل في إضافة الصنف: ' + (res?.error || createMutation.error));
         }
       }
       setIsDrawerOpen(false);
@@ -182,12 +185,12 @@ export default function Inventory({ searchQuery, setSearchQuery }: InventoryProp
     if (!itemToDelete) return;
 
     try {
-      await deleteMutation.mutate(parseInt(itemToDelete));
-      if (deleteMutation.success) {
+      const res = await deleteMutation.mutate(parseInt(itemToDelete));
+      if (res?.success) {
         alert('تم حذف الصنف بنجاح');
         refetch();
       } else {
-        alert('فشل في حذف الصنف: ' + deleteMutation.error);
+        alert('فشل في حذف الصنف: ' + (res?.error || deleteMutation.error));
       }
       setItemToDelete(null);
       if (viewingItem?.id === itemToDelete) setViewingItem(null);
@@ -198,7 +201,7 @@ export default function Inventory({ searchQuery, setSearchQuery }: InventoryProp
 
   const openAddModal = () => {
     setEditingId(null);
-    setFormData({ quantity: 0, price: 0 });
+    setFormData({ quantity: 0, selling_price: 0 });
     setIsDrawerOpen(true);
   };
 
@@ -345,7 +348,7 @@ export default function Inventory({ searchQuery, setSearchQuery }: InventoryProp
                   exit={{ opacity: 0, y: -6, scale: 0.97 }}
                   className="absolute top-full mt-2 right-0 bg-white rounded-2xl shadow-xl border border-surface-container-high z-20 min-w-[180px] overflow-hidden py-1"
                 >
-                  {([['name', 'الاسم'], ['quantity', 'الكمية'], ['price', 'السعر']] as const).map(([key, label]) => (
+                  {([['name', 'الاسم'], ['quantity', 'الكمية'], ['selling_price', 'السعر']] as const).map(([key, label]) => (
                     <button
                       key={key}
                       onClick={() => {
@@ -412,11 +415,11 @@ export default function Inventory({ searchQuery, setSearchQuery }: InventoryProp
                 </th>
                 <th className="px-5 py-3.5 text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">
                   <button onClick={() => {
-                    setSortBy('price');
-                    setSortOrder(o => sortBy === 'price' ? (o === 'asc' ? 'desc' : 'asc') : 'asc');
+                    setSortBy('selling_price');
+                    setSortOrder(o => sortBy === 'selling_price' ? (o === 'asc' ? 'desc' : 'asc') : 'asc');
                   }} className="flex items-center gap-1 hover:text-primary transition-colors">
                     السعر
-                    {sortBy === 'price' ? (sortOrder === 'asc' ? <SortAsc size={13} /> : <SortDesc size={13} />) : <ArrowUpDown size={11} className="opacity-40" />}
+                    {sortBy === 'selling_price' ? (sortOrder === 'asc' ? <SortAsc size={13} /> : <SortDesc size={13} />) : <ArrowUpDown size={11} className="opacity-40" />}
                   </button>
                 </th>
                 <th className="px-5 py-3.5 text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">الحالة</th>
@@ -469,15 +472,15 @@ export default function Inventory({ searchQuery, setSearchQuery }: InventoryProp
                     <td className="px-5 py-3.5 hidden sm:table-cell">
                       <span className={cn(
                         'text-sm font-bold font-mono',
-                        item.quantity === 0 ? 'text-red-500' : item.quantity <= 5 ? 'text-amber-600' : 'text-on-surface'
+                        (item.quantity || 0) === 0 ? 'text-red-500' : (item.quantity || 0) <= 5 ? 'text-amber-600' : 'text-on-surface'
                       )}>
-                        {item.quantity.toLocaleString('ar-SA')}
+                        {(item.quantity || 0).toLocaleString('ar-SA')}
                       </span>
                       <span className="text-xs text-on-surface-variant mr-1">وحدة</span>
                     </td>
                     <td className="px-5 py-3.5">
                       <span className="text-sm font-bold text-on-surface font-mono">
-                        {item.price.toLocaleString('ar-SA')}
+                        {(item.selling_price || 0).toLocaleString('ar-SA')}
                       </span>
                       <span className="text-xs text-on-surface-variant mr-1">ر.س</span>
                     </td>
@@ -563,9 +566,9 @@ export default function Inventory({ searchQuery, setSearchQuery }: InventoryProp
                 {[
                   { label: 'الرمز (SKU)', value: viewingItem.sku, mono: true },
                   { label: 'الباركود', value: viewingItem.barcode || '—', mono: true },
-                  { label: 'الكمية المتاحة', value: `${viewingItem.quantity} وحدة` },
-                  { label: 'سعر الوحدة', value: `${viewingItem.price.toLocaleString('ar-SA')} ر.س` },
-                  { label: 'القيمة الإجمالية', value: `${(viewingItem.price * viewingItem.quantity).toLocaleString('ar-SA')} ر.س` },
+                  { label: 'الكمية المتاحة', value: `${viewingItem.quantity || 0} وحدة` },
+                  { label: 'سعر الوحدة', value: `${(viewingItem.selling_price || 0).toLocaleString('ar-SA')} ر.س` },
+                  { label: 'القيمة الإجمالية', value: `${((viewingItem.selling_price || 0) * (viewingItem.quantity || 0)).toLocaleString('ar-SA')} ر.س` },
                 ].map(({ label, value, mono }) => (
                   <div key={label} className="flex items-center justify-between py-2.5 border-b border-surface-container-low last:border-0">
                     <span className="text-xs text-on-surface-variant">{label}</span>
@@ -671,13 +674,13 @@ export default function Inventory({ searchQuery, setSearchQuery }: InventoryProp
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-on-surface-variant">السعر (ر.س)</label>
+                    <label className="text-xs font-bold text-on-surface-variant">سعر البيع (ر.س)</label>
                     <input
                       type="number"
                       min={0}
                       step={0.01}
-                      value={formData.price ?? 0}
-                      onChange={e => setFormData({ ...formData, price: Number(e.target.value) })}
+                      value={formData.selling_price ?? 0}
+                      onChange={e => setFormData({ ...formData, selling_price: Number(e.target.value) })}
                       className="input-field"
                     />
                   </div>

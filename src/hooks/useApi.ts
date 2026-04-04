@@ -45,29 +45,31 @@ export function useMutation<TData = any, TVariables = any>(
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
-
-  const mutate = useCallback(async (variables: TVariables) => {
-    setLoading(true);
-    setError(null);
-    setSuccess(false);
-    try {
-      const result = await mutateFn(variables);
-      if (result.success) {
-        setSuccess(true);
-        return result.data;
-      } else {
-        setError(result.error || 'حدث خطأ غير متوقع');
-        return null;
+  const mutate = useCallback(
+    async (variables: TVariables): Promise<{ success: boolean; data?: TData; error?: string } | null> => {
+      setLoading(true);
+      setError(null);
+      setSuccess(false);
+      try {
+        const result = await mutateFn(variables);
+        // reflect server result in hook state
+        setSuccess(!!result.success);
+        if (!result.success) {
+          setError(result.error || 'حدث خطأ غير متوقع');
+        }
+        return result;
+      } catch (err) {
+        const msg = 'فشل في الاتصال بالسيرفر';
+        setError(msg);
+        return { success: false, error: msg };
+      } finally {
+        setLoading(false);
       }
-    } catch (err) {
-      setError('فشل في الاتصال بالسيرفر');
-      return null;
-    } finally {
-      setLoading(false);
-    }
-  }, [mutateFn]);
+    },
+    [mutateFn]
+  );
 
-  return { mutate, loading, error, success };
+  return { mutate, mutateAsync: mutate, loading, error, success };
 }
 
 // ─── Specialized Hooks ───────────────────────────────────────────────────────
@@ -204,7 +206,7 @@ export function useCustomers(params?: { search?: string; has_balance?: boolean; 
     () => import('../lib/api').then(m => m.customersApi.getAll(params)),
     [JSON.stringify(params)]
   );
-  return { customers: data, loading, error, refetch };
+  return { customers: (data as any)?.customers || [], loading, error, refetch };
 }
 
 // Suppliers Hook
@@ -213,7 +215,7 @@ export function useSuppliers(params?: { search?: string; has_balance?: boolean; 
     () => import('../lib/api').then(m => m.suppliersApi.getAll(params)),
     [JSON.stringify(params)]
   );
-  return { suppliers: data, loading, error, refetch };
+  return { suppliers: (data as any)?.suppliers || [], loading, error, refetch };
 }
 
 // Users Hook
@@ -222,7 +224,7 @@ export function useUsers() {
     () => import('../lib/api').then(m => m.usersApi.getAll()),
     []
   );
-  return { users: data, loading, error, refetch };
+  return { users: (data as any)?.users || [], loading, error, refetch };
 }
 
 // Dashboard Hook
