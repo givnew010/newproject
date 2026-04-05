@@ -77,3 +77,13 @@ export interface SystemUser {
   avatar?: string;
   notes?: string;
 }
+
+// User shape returned by auth endpoints (keeps both snake_case and camelCase optional)
+export interface AuthUser {
+  id: number | string;
+  username?: string;
+  full_name?: string;
+  fullName?: string;
+  role?: string;
+  email?: string;
+}

@@ -20,20 +20,8 @@ db.pragma('foreign_keys = ON');
 // تهيئة الجداول (المراحل 2-2 حتى 2-10)
 // ─────────────────────────────────────────────────────────────────────────────
 export function initializeDatabase(): void {
-  createUsersTable();
-  createWarehousesTable();
-  createInventoryItemsTable();
-  createCustomersTable();
-  createSuppliersTable();
-  createSalesInvoicesTables();
-  createPurchaseInvoicesTables();
-  createPaymentsTable();
-  createReturnsTable();
-  createStockMovementsTable();
-  createSettingsTable();
-  createAuditLogsTable();
-
-  seedDefaultData();
+  createTables();
+  seedData();
 
   console.log('✅ قاعدة البيانات جاهزة:', DB_PATH);
 }
@@ -488,6 +476,72 @@ function seedDefaultWarehouse(): void {
       VALUES (?, ?, ?, ?, ?)
     `).run('المخزن الرئيسي', 'الموقع الرئيسي', 'مدير المخزن', '', '#3b82f6');
   }
+}
+
+// تُنشِئ كافة الجداول بدون إجراء seed
+export function createTables(): void {
+  createUsersTable();
+  createWarehousesTable();
+  createInventoryItemsTable();
+  createCustomersTable();
+  createSuppliersTable();
+  createSalesInvoicesTables();
+  createPurchaseInvoicesTables();
+  createPaymentsTable();
+  createReturnsTable();
+  createStockMovementsTable();
+  createSettingsTable();
+  createAuditLogsTable();
+}
+
+// تقوم بإضافة بيانات افتراضية (admin، إعدادات، مخزن افتراضي)
+export function seedData(): void {
+  seedDefaultData();
+}
+
+/**
+ * توليد رقم فاتورة مركزي (sales | purchase)
+ */
+export function generateInvoiceNumber(type: 'sales' | 'purchase' = 'sales'): string {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+
+  const salesPrefixRow = db.prepare("SELECT value FROM settings WHERE key = ?").get('sales_invoice_prefix') as { value?: string } | undefined;
+  const purchasePrefixRow = db.prepare("SELECT value FROM settings WHERE key = ?").get('purchase_invoice_prefix') as { value?: string } | undefined;
+
+  const salesPrefix = (salesPrefixRow && salesPrefixRow.value) ? salesPrefixRow.value : 'INV';
+  const purchasePrefix = (purchasePrefixRow && purchasePrefixRow.value) ? purchasePrefixRow.value : 'PO';
+
+  if (type === 'sales') {
+    const prefix = `${salesPrefix}-${year}${month}-`;
+    const last = db.prepare(`
+      SELECT invoice_number FROM sales_invoices WHERE invoice_number LIKE ? ORDER BY id DESC LIMIT 1
+    `).get(`${prefix}%`) as { invoice_number?: string } | undefined;
+
+    let next = 1;
+    if (last && last.invoice_number) {
+      const parts = last.invoice_number.split('-');
+      const num = parseInt(parts[2] ?? '0', 10);
+      if (!Number.isNaN(num)) next = num + 1;
+    }
+
+    return `${prefix}${String(next).padStart(3, '0')}`;
+  }
+
+  const prefix = `${purchasePrefix}-${year}${month}-`;
+  const last = db.prepare(`
+    SELECT invoice_number FROM purchase_invoices WHERE invoice_number LIKE ? ORDER BY id DESC LIMIT 1
+  `).get(`${prefix}%`) as { invoice_number?: string } | undefined;
+
+  let next = 1;
+  if (last && last.invoice_number) {
+    const parts = last.invoice_number.split('-');
+    const num = parseInt(parts[2] ?? '0', 10);
+    if (!Number.isNaN(num)) next = num + 1;
+  }
+
+  return `${prefix}${String(next).padStart(3, '0')}`;
 }
 
 export { db };

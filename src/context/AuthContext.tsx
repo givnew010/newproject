@@ -5,16 +5,10 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { authApi } from '../lib/api';
-
-interface User {
-  id: number;
-  username: string;
-  full_name: string;
-  role: string;
-}
+import { AuthUser } from '../types';
 
 interface AuthContextType {
-  user: User | null;
+  user: AuthUser | null;
   token: string | null;
   login: (username: string, password: string) => Promise<boolean>;
   logout: () => void;
@@ -36,8 +30,8 @@ interface AuthProviderProps {
 }
 
 export function AuthProvider({ children }: AuthProviderProps) {
-  const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
+  const [token, setToken] = useState<string | null>(localStorage.getItem('auth_token'));
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -48,7 +42,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       // Verify token with server
       authApi.me().then(result => {
         if (result.success && result.data) {
-          setUser(result.data);
+          setUser(result.data as AuthUser);
         } else {
           // Token invalid, remove it
           localStorage.removeItem('auth_token');
@@ -66,7 +60,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     try {
       const result = await authApi.login({ username, password });
       if (result.success && result.data) {
-        const { token: newToken, user: userData } = result.data;
+        const { token: newToken, user: userData } = result.data as { token: string; user: AuthUser };
         localStorage.setItem('auth_token', newToken);
         setToken(newToken);
         setUser(userData);

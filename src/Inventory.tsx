@@ -10,6 +10,7 @@ import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { InventoryItem, ItemStatus } from './types';
 import { useInventory, useCreateInventory, useUpdateInventory, useDeleteInventory } from './hooks/useApi';
+import { useToast } from './context/ToastContext';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -87,6 +88,7 @@ export default function Inventory({ searchQuery, setSearchQuery }: InventoryProp
   const createMutation = useCreateInventory();
   const updateMutation = useUpdateInventory();
   const deleteMutation = useDeleteInventory();
+  const { showSuccess, showError } = useToast();
 
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [formData, setFormData] = useState<Partial<InventoryItem>>({});
@@ -159,25 +161,25 @@ export default function Inventory({ searchQuery, setSearchQuery }: InventoryProp
       if (editingId) {
         const res = await updateMutation.mutate({ id: parseInt(editingId), item: itemData });
         if (res?.success) {
-          alert('تم تحديث الصنف بنجاح');
+          showSuccess('تم تحديث الصنف بنجاح');
           refetch();
         } else {
-          alert('فشل في تحديث الصنف: ' + (res?.error || updateMutation.error));
+          showError('فشل في تحديث الصنف: ' + (res?.error || updateMutation.error));
         }
       } else {
         const res = await createMutation.mutate(itemData);
         if (res?.success) {
-          alert('تم إضافة الصنف بنجاح');
+          showSuccess('تم إضافة الصنف بنجاح');
           refetch();
         } else {
-          alert('فشل في إضافة الصنف: ' + (res?.error || createMutation.error));
+          showError('فشل في إضافة الصنف: ' + (res?.error || createMutation.error));
         }
       }
       setIsDrawerOpen(false);
       setFormData({});
       setEditingId(null);
     } catch (error) {
-      alert('حدث خطأ غير متوقع');
+      showError('حدث خطأ غير متوقع');
     }
   };
 
@@ -187,15 +189,15 @@ export default function Inventory({ searchQuery, setSearchQuery }: InventoryProp
     try {
       const res = await deleteMutation.mutate(parseInt(itemToDelete));
       if (res?.success) {
-        alert('تم حذف الصنف بنجاح');
+        showSuccess('تم حذف الصنف بنجاح');
         refetch();
       } else {
-        alert('فشل في حذف الصنف: ' + (res?.error || deleteMutation.error));
+        showError('فشل في حذف الصنف: ' + (res?.error || deleteMutation.error));
       }
       setItemToDelete(null);
       if (viewingItem?.id === itemToDelete) setViewingItem(null);
     } catch (error) {
-      alert('حدث خطأ غير متوقع');
+      showError('حدث خطأ غير متوقع');
     }
   };
 

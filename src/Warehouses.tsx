@@ -14,6 +14,7 @@ import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { Warehouse as WarehouseType, InventoryItem } from './types';
 import { useWarehouses, useCreateWarehouse, useUpdateWarehouse, useDeleteWarehouse } from './hooks/useApi';
+import { useToast } from './context/ToastContext';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -112,6 +113,7 @@ export default function Warehouses({ inventoryItems }: Props) {
   const createMutation = useCreateWarehouse();
   const updateMutation = useUpdateWarehouse();
   const deleteMutation = useDeleteWarehouse();
+  const { showSuccess, showError } = useToast();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -174,25 +176,25 @@ export default function Warehouses({ inventoryItems }: Props) {
       if (editingId) {
         await updateMutation.mutate({ id: parseInt(editingId), warehouse: warehouseData });
         if (updateMutation.success) {
-          alert('تم تحديث المستودع بنجاح');
+          showSuccess('تم تحديث المستودع بنجاح');
           refetch();
         } else {
-          alert('فشل في تحديث المستودع: ' + updateMutation.error);
+          showError('فشل في تحديث المستودع: ' + updateMutation.error);
         }
       } else {
         await createMutation.mutate(warehouseData);
         if (createMutation.success) {
-          alert('تم إضافة المستودع بنجاح');
+          showSuccess('تم إضافة المستودع بنجاح');
           refetch();
         } else {
-          alert('فشل في إضافة المستودع: ' + createMutation.error);
+          showError('فشل في إضافة المستودع: ' + createMutation.error);
         }
       }
       setIsModalOpen(false);
       setForm(emptyForm());
       setEditingId(null);
     } catch (error) {
-      alert('حدث خطأ غير متوقع');
+      showError('حدث خطأ غير متوقع');
     }
   };
 
@@ -202,15 +204,15 @@ export default function Warehouses({ inventoryItems }: Props) {
     try {
       await deleteMutation.mutate(parseInt(deleteId));
       if (deleteMutation.success) {
-        alert('تم حذف المستودع بنجاح');
+        showSuccess('تم حذف المستودع بنجاح');
         refetch();
       } else {
-        alert('فشل في حذف المستودع: ' + deleteMutation.error);
+        showError('فشل في حذف المستودع: ' + deleteMutation.error);
       }
       if (viewingWh?.id === deleteId) setViewingWh(null);
       setDeleteId(null);
     } catch (error) {
-      alert('حدث خطأ غير متوقع');
+      showError('حدث خطأ غير متوقع');
     }
   };
 

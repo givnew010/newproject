@@ -14,7 +14,7 @@
 
 import { Router, Request, Response } from "express";
 import { z, ZodError } from "zod";
-import db from "../db.js";
+import db, { generateInvoiceNumber } from "../db.js";
 import { verifyToken, checkRole } from "../middleware/auth.js";
 import type {
   DbPurchaseInvoice,
@@ -68,26 +68,7 @@ function handleZodError(err: ZodError, res: Response): void {
   });
 }
 
-function generatePurchaseInvoiceNumber(): string {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, "0");
-  const prefix = `PO-${year}${month}-`;
-
-  const stmt = db.prepare(`
-    SELECT invoice_number FROM purchase_invoices WHERE invoice_number LIKE ? ORDER BY id DESC LIMIT 1
-  `);
-  const last = stmt.get(`${prefix}%`) as { invoice_number: string } | undefined;
-
-  let next = 1;
-  if (last?.invoice_number) {
-    const parts = last.invoice_number.split("-");
-    const num = parseInt(parts[2] ?? "0", 10);
-    if (!Number.isNaN(num)) next = num + 1;
-  }
-
-  return `${prefix}${String(next).padStart(3, "0")}`;
-}
+// Invoice numbers are generated centrally in server/db.ts -> generateInvoiceNumber('purchase')
 
 function calculateTotals(items: Array<{ quantity: number; unit_price: number; discount: number }>, discountAmount: number, taxRate = 15) {
   const subtotal = items.reduce((sum, item) => sum + (item.quantity * item.unit_price - item.discount), 0);
@@ -320,7 +301,7 @@ router.post("/", checkRole("admin", "accountant"), (req: Request, res: Response<
   }
 
   const totals = calculateTotals(data.items, data.discount_amount);
-  const invoiceNumber = generatePurchaseInvoiceNumber();
+  const invoiceNumber = generateInvoiceNumber('purchase');
   const date = data.date || new Date().toISOString().split("T")[0];
   const dueDate = data.due_date || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
 

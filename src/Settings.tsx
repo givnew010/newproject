@@ -11,6 +11,7 @@ import {
   Shield, Moon, Sun, Monitor, Camera, Pencil
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { useToast } from './context/ToastContext';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
@@ -159,6 +160,7 @@ export default function SettingsPage() {
   const [saved, setSaved] = useState(false);
   const [resetConfirm, setResetConfirm] = useState(false);
   const [dataConfirm, setDataConfirm] = useState(false);
+  const { showError } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const update = (partial: Partial<AppSettings>) => setSettings(s => ({ ...s, ...partial }));
@@ -209,7 +211,7 @@ export default function SettingsPage() {
         if (data.settings) localStorage.setItem('app_settings', JSON.stringify(data.settings));
         window.location.reload();
       } catch {
-        alert('ملف غير صالح. يرجى التحقق من الملف وإعادة المحاولة.');
+        showError('ملف غير صالح. يرجى التحقق من الملف وإعادة المحاولة.');
       }
     };
     reader.readAsText(file);

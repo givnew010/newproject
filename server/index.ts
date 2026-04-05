@@ -14,7 +14,7 @@ import cors from "cors";
 import path from "path";
 import { fileURLToPath } from "url";
 import fs from "fs";
-import { initializeDatabase } from "./db.js";
+import { createTables, seedData } from "./db.js";
 
 // ─── Routes ──────────────────────────────────────────────────────────────────
 import authRouter       from "./routes/auth.js";
@@ -39,7 +39,8 @@ if (!fs.existsSync(dataDir)) {
 }
 
 // ─── تهيئة قاعدة البيانات ────────────────────────────────────────────────────
-initializeDatabase();
+createTables();
+seedData();
 
 // ─── إنشاء تطبيق Express ─────────────────────────────────────────────────────
 const app = express();

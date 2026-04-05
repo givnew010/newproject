@@ -171,7 +171,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
 // Main App Component (without auth logic)
 function AppContent() {
-  const { data: inventoryItems = [], isLoading: inventoryLoading, refetch: refetchInventory } = useInventory();
+  const { items: inventoryItems = [], loading: inventoryLoading, refetch: refetchInventory } = useInventory();
 
   const [currentPage, setCurrentPage] = useState<Page>('dashboard');
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -384,17 +384,17 @@ function AppContent() {
           <AnimatePresence mode="wait">
             {currentPage === 'dashboard' && (
               <motion.div key="dashboard" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }}>
-                <Dashboard inventoryItems={inventoryItems} onNavigate={(page) => setCurrentPage(page as Page)} />
+                <Dashboard onNavigate={(page) => setCurrentPage(page as Page)} />
               </motion.div>
             )}
             {currentPage === 'purchases' && (
               <motion.div key="purchases" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }}>
-                <PurchaseInvoices inventoryItems={inventoryItems} onInventoryUpdate={handleInventoryUpdate} />
+                <PurchaseInvoices />
               </motion.div>
             )}
             {currentPage === 'sales' && (
               <motion.div key="sales" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }}>
-                <SalesInvoices inventoryItems={inventoryItems} onInventoryUpdate={handleInventoryUpdate} />
+                <SalesInvoices />
               </motion.div>
             )}
             {currentPage === 'reports' && (

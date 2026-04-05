@@ -9,6 +9,7 @@ import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { SalesInvoice, InvoiceLineItem, InventoryItem, ItemStatus } from './types';
 import { useSales, useCreateSale, useUpdateSale, useDeleteSale, useCreateSalePayment, useCustomers, useInventory } from './hooks/useApi';
+import { useToast } from './context/ToastContext';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -86,6 +87,7 @@ export default function SalesInvoices({}: Props) {
   const updateMutation = useUpdateSale();
   const deleteMutation = useDeleteSale();
   const paymentMutation = useCreateSalePayment();
+  const { showSuccess, showError } = useToast();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -174,7 +176,7 @@ export default function SalesInvoices({}: Props) {
       refetch();
     } catch (error) {
       console.error('Error saving invoice:', error);
-      alert('حدث خطأ أثناء حفظ الفاتورة');
+      showError('حدث خطأ أثناء حفظ الفاتورة');
     }
   };
 
@@ -187,7 +189,7 @@ export default function SalesInvoices({}: Props) {
       refetch();
     } catch (error) {
       console.error('Error deleting invoice:', error);
-      alert('حدث خطأ أثناء حذف الفاتورة');
+      showError('حدث خطأ أثناء حذف الفاتورة');
     }
   };
 
@@ -204,10 +206,10 @@ export default function SalesInvoices({}: Props) {
       });
       setPaymentModal({ invoice: null, amount: '', method: 'cash', notes: '' });
       refetch();
-      alert('تم إضافة الدفعة بنجاح');
+      showSuccess('تم إضافة الدفعة بنجاح');
     } catch (error) {
       console.error('Error adding payment:', error);
-      alert('حدث خطأ أثناء إضافة الدفعة');
+      showError('حدث خطأ أثناء إضافة الدفعة');
     }
   };
 

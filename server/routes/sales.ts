@@ -14,7 +14,7 @@
 
 import { Router, Request, Response } from "express";
 import { z, ZodError } from "zod";
-import db from "../db.js";
+import db, { generateInvoiceNumber } from "../db.js";
 import { verifyToken, checkRole } from "../middleware/auth.js";
 import type {
   DbSalesInvoice,
@@ -62,34 +62,7 @@ const createPaymentSchema = z.object({
 // Helper Functions
 // ══════════════════════════════════════════════════════════════════════════════
 
-/**
- * توليد رقم فاتورة جديد متسلسل
- */
-function generateInvoiceNumber(): string {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, '0');
-
-  // احصل على آخر رقم فاتورة لهذا الشهر
-  const stmt = db.prepare(`
-    SELECT invoice_number
-    FROM sales_invoices
-    WHERE invoice_number LIKE ?
-    ORDER BY id DESC
-    LIMIT 1
-  `);
-
-  const prefix = `INV-${year}${month}-`;
-  const lastInvoice = stmt.get(`${prefix}%`) as { invoice_number: string } | undefined;
-
-  let nextNumber = 1;
-  if (lastInvoice) {
-    const lastNumber = parseInt(lastInvoice.invoice_number.split('-')[2]);
-    nextNumber = lastNumber + 1;
-  }
-
-  return `${prefix}${String(nextNumber).padStart(3, '0')}`;
-}
+// Invoice numbers are generated centrally in server/db.ts -> generateInvoiceNumber()
 
 /**
  * حساب إجماليات الفاتورة

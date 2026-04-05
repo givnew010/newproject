@@ -82,3 +82,6 @@ export function generateToken(payload: JwtPayload): string {
 }
 
 export { JWT_SECRET };
+
+// Compatibility alias requested by project spec
+export const authenticate = verifyToken;
