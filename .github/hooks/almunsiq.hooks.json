@@ -1,0 +1,52 @@
+{
+  "hooks": [
+    {
+      "event": "preToolUse",
+      "tool": "editFiles",
+      "runs": [
+        {
+          "command": "node -e \"const f = process.env.COPILOT_TOOL_INPUT ? JSON.parse(process.env.COPILOT_TOOL_INPUT) : {}; const path = f.path || ''; const isServer = path.startsWith('server/'); const isSrc = path.startsWith('src/'); if (isServer) { console.log('🔧 [Backend File] تأكد من: authenticate middleware + Zod validation + db.transaction() للعمليات المتعددة'); } if (isSrc) { console.log('⚛️  [Frontend File] تأكد من: استخدام useApi hooks + ToastContext + لا fetch مباشرة'); } if (path.includes('db.ts')) { console.log('🗄️  [Database] تأكد من: WAL mode + foreign_keys ON + prepared statements'); }\"",
+          "shell": "bash"
+        }
+      ]
+    },
+    {
+      "event": "preToolUse",
+      "tool": "runCommands",
+      "runs": [
+        {
+          "command": "node -e \"const cmd = process.env.COPILOT_TOOL_INPUT || ''; if (cmd.includes('DROP TABLE') || cmd.includes('DELETE FROM') && !cmd.includes('WHERE')) { console.error('⛔ تحذير: أمر خطير محتمل! تأكد من استخدام soft delete (is_active = 0) بدلاً من الحذف الفعلي'); process.exit(1); } else { console.log('✅ الأمر آمن للتنفيذ'); }\"",
+          "shell": "bash"
+        }
+      ]
+    },
+    {
+      "event": "postToolUse",
+      "tool": "editFiles",
+      "runs": [
+        {
+          "command": "node -e \"const f = process.env.COPILOT_TOOL_INPUT ? JSON.parse(process.env.COPILOT_TOOL_INPUT) : {}; const path = f.path || ''; if (path.endsWith('.ts') || path.endsWith('.tsx')) { console.log('📝 [Post-Edit] يُنصح بتشغيل: npx tsc --noEmit للتحقق من TypeScript'); } if (path.startsWith('server/routes/')) { console.log('🔗 [Route File] تأكد من تسجيل الـ route في server/index.ts'); }\"",
+          "shell": "bash"
+        }
+      ]
+    },
+    {
+      "event": "sessionStart",
+      "runs": [
+        {
+          "command": "node -e \"console.log('🚀 جلسة GitHub Copilot — مشروع المُنسق'); console.log('📋 أولويات العمل:'); console.log('  🔴 عاجل: Backend API (server/) — المراحل 1-8'); console.log('  🟡 مهم: ربط Frontend بالـ API الحقيقي'); console.log('  🟢 تحسين: ميزات متقدمة (طباعة، audit log، تنبيهات)'); console.log(''); console.log('📁 ملفات تكوين Copilot:'); console.log('  Instructions: .github/copilot-instructions.md'); console.log('  Backend: .github/instructions/backend.instructions.md'); console.log('  Frontend: .github/instructions/frontend.instructions.md'); console.log('  Database: .github/instructions/database.instructions.md');\"",
+          "shell": "bash"
+        }
+      ]
+    },
+    {
+      "event": "agentStop",
+      "runs": [
+        {
+          "command": "node -e \"console.log('✅ انتهت الجلسة — تذكر: git add . && git commit -m \\\"وصف التغييرات\\\"'); console.log('📌 قبل الـ commit: تحقق من TypeScript errors بـ: npx tsc --noEmit');\"",
+          "shell": "bash"
+        }
+      ]
+    }
+  ]
+}
