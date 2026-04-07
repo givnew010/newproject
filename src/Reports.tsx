@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect, useCallback } from 'react';
 import {
   TrendingUp, TrendingDown, ShoppingCart, ShoppingBag, DollarSign,
   Package, BarChart3, ArrowUp, ArrowDown, Layers
@@ -12,6 +12,7 @@ import { motion } from 'motion/react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { InventoryItem, PurchaseInvoice, SalesInvoice } from './types';
+import { reportsApi } from './lib/api';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -22,15 +23,12 @@ interface Props {
 }
 
 export default function Reports({ inventoryItems }: Props) {
-  const purchaseInvoices = useMemo<PurchaseInvoice[]>(() => {
-    try { return JSON.parse(localStorage.getItem('purchase_invoices') ?? '[]'); }
-    catch { return []; }
-  }, []);
-
-  const salesInvoices = useMemo<SalesInvoice[]>(() => {
-    try { return JSON.parse(localStorage.getItem('sales_invoices') ?? '[]'); }
-    catch { return []; }
-  }, []);
+  const [purchaseInvoices, setPurchaseInvoices] = useState<PurchaseInvoice[]>([]);
+  const [salesInvoices, setSalesInvoices] = useState<SalesInvoice[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [dateFrom, setDateFrom] = useState<string | undefined>(undefined);
+  const [dateTo, setDateTo] = useState<string | undefined>(undefined);
 
   const totalSales = salesInvoices.reduce((s, i) => s + i.totalAmount, 0);
   const totalPurchases = purchaseInvoices.reduce((s, i) => s + i.totalAmount, 0);
@@ -91,8 +89,108 @@ export default function Reports({ inventoryItems }: Props) {
 
   const maxMonthlyValue = Math.max(...monthlySummary.flatMap(m => [m.sales, m.purchases]), 1);
 
+  const [inventoryReport, setInventoryReport] = useState<InventoryItem[]>([]);
+  const [receivables, setReceivables] = useState<any[]>([]);
+  const [payables, setPayables] = useState<any[]>([]);
+  const [activeTab, setActiveTab] = useState<'overview' | 'inventory' | 'receivables'>('overview');
+
+  const fetchReports = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const salesRes = await reportsApi.getSales({ date_from: dateFrom, date_to: dateTo });
+      const purchasesRes = await reportsApi.getPurchases({ date_from: dateFrom, date_to: dateTo });
+
+      if (!salesRes.success) throw new Error(salesRes.error ?? 'فشل جلب بيانات المبيعات');
+      if (!purchasesRes.success) throw new Error(purchasesRes.error ?? 'فشل جلب بيانات المشتريات');
+
+      const salesData = Array.isArray(salesRes.data) ? salesRes.data : (salesRes.data?.items ?? []);
+      const purchasesData = Array.isArray(purchasesRes.data) ? purchasesRes.data : (purchasesRes.data?.items ?? []);
+
+      setSalesInvoices(salesData as SalesInvoice[]);
+      setPurchaseInvoices(purchasesData as PurchaseInvoice[]);
+    } catch (err: any) {
+      console.error(err);
+      setError(err?.message ?? 'حدث خطأ أثناء جلب التقارير');
+    } finally {
+      setLoading(false);
+    }
+  }, [dateFrom, dateTo]);
+
+  useEffect(() => { fetchReports(); }, [fetchReports]);
+
+  const fetchInventoryReport = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await reportsApi.getInventory();
+      if (!res.success) throw new Error(res.error ?? 'فشل جلب تقرير المخزون');
+      const items = Array.isArray(res.data) ? res.data : (res.data?.items ?? []);
+      setInventoryReport(items as InventoryItem[]);
+    } catch (err: any) {
+      console.error(err);
+      setError(err?.message ?? 'حدث خطأ أثناء جلب تقرير المخزون');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const fetchReceivablesPayables = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const r1 = await reportsApi.getReceivables();
+      const r2 = await reportsApi.getPayables();
+      if (!r1.success) throw new Error(r1.error ?? 'فشل جلب الذمم');
+      if (!r2.success) throw new Error(r2.error ?? 'فشل جلب الذمم');
+      setReceivables(Array.isArray(r1.data) ? r1.data : (r1.data?.items ?? []));
+      setPayables(Array.isArray(r2.data) ? r2.data : (r2.data?.items ?? []));
+    } catch (err: any) {
+      console.error(err);
+      setError(err?.message ?? 'حدث خطأ أثناء جلب الذمم');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (activeTab === 'inventory') fetchInventoryReport();
+    if (activeTab === 'receivables') fetchReceivablesPayables();
+  }, [activeTab, fetchInventoryReport, fetchReceivablesPayables]);
+
   return (
     <div className="p-4 lg:p-8 space-y-6 flex-1">
+      <div className="flex items-center justify-end gap-3">
+        <div className="flex items-center gap-2 text-sm">
+          <input
+            type="date"
+            value={dateFrom ?? ''}
+            onChange={e => setDateFrom(e.target.value || undefined)}
+            className="bg-surface-container-high rounded-lg px-3 py-2 text-sm outline-none"
+            dir="ltr"
+          />
+          <input
+            type="date"
+            value={dateTo ?? ''}
+            onChange={e => setDateTo(e.target.value || undefined)}
+            className="bg-surface-container-high rounded-lg px-3 py-2 text-sm outline-none"
+            dir="ltr"
+          />
+          <button onClick={fetchReports} className="px-3 py-2 bg-primary text-white rounded-xl text-sm font-bold">تحديث</button>
+          <button onClick={() => { setDateFrom(undefined); setDateTo(undefined); }} className="px-3 py-2 border rounded-xl text-sm">مسح</button>
+        </div>
+      </div>
+
+      {/* Tabs */}
+      <div className="flex items-center gap-2">
+        <button onClick={() => setActiveTab('overview')} className={cn('px-3 py-2 rounded-lg text-sm font-medium', activeTab === 'overview' ? 'bg-primary text-white' : 'bg-surface-container-low')}>نظرة عامة</button>
+        <button onClick={() => setActiveTab('inventory')} className={cn('px-3 py-2 rounded-lg text-sm font-medium', activeTab === 'inventory' ? 'bg-primary text-white' : 'bg-surface-container-low')}>المخزون</button>
+        <button onClick={() => setActiveTab('receivables')} className={cn('px-3 py-2 rounded-lg text-sm font-medium', activeTab === 'receivables' ? 'bg-primary text-white' : 'bg-surface-container-low')}>الذمم</button>
+      </div>
+
+      {/* Error / Loading */}
+      {error && <div className="text-sm text-error p-2 bg-error/10 rounded-md">{error}</div>}
+      {loading && <div className="text-sm text-on-surface-variant">جاري التحميل...</div>}
 
       {/* Summary KPIs */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">

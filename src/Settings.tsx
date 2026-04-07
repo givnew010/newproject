@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useToast } from './context/ToastContext';
+import { settingsApi } from './lib/api';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
@@ -65,13 +66,6 @@ export const DEFAULT_SETTINGS: AppSettings = {
   theme: 'light',
   itemsPerPage: 25,
 };
-
-function loadSettings(): AppSettings {
-  try {
-    const saved = localStorage.getItem('app_settings');
-    return saved ? { ...DEFAULT_SETTINGS, ...JSON.parse(saved) } : DEFAULT_SETTINGS;
-  } catch { return DEFAULT_SETTINGS; }
-}
 
 type SectionId = 'company' | 'inventory' | 'invoices' | 'notifications' | 'data';
 
@@ -155,31 +149,89 @@ function Toggle({ checked, onChange, label }: { checked: boolean; onChange: (v: 
 }
 
 export default function SettingsPage() {
-  const [settings, setSettings] = useState<AppSettings>(loadSettings);
+  const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS);
+  const [loadingSettings, setLoadingSettings] = useState(true);
   const [activeSection, setActiveSection] = useState<SectionId>('company');
   const [saved, setSaved] = useState(false);
   const [resetConfirm, setResetConfirm] = useState(false);
   const [dataConfirm, setDataConfirm] = useState(false);
-  const { showError } = useToast();
+  const { showError, showSuccess } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const update = (partial: Partial<AppSettings>) => setSettings(s => ({ ...s, ...partial }));
 
-  const handleSave = () => {
-    localStorage.setItem('app_settings', JSON.stringify(settings));
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2500);
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const res = await settingsApi.getAll();
+        if (!mounted) return;
+        if (res.success && res.data) {
+          setSettings({ ...DEFAULT_SETTINGS, ...res.data });
+        } else {
+          showError(res.error ?? 'فشل جلب إعدادات النظام');
+        }
+      } catch (err) {
+        console.error(err);
+        showError('خطأ أثناء تحميل الإعدادات');
+      } finally {
+        if (mounted) setLoadingSettings(false);
+      }
+    })();
+    return () => { mounted = false; };
+  }, []);
+
+  const handleSave = async () => {
+    try {
+      const res = await settingsApi.update(settings as any);
+      if (res.success) {
+        setSaved(true);
+        showSuccess('تم حفظ الإعدادات بنجاح');
+        setTimeout(() => setSaved(false), 2500);
+      } else {
+        showError(res.error ?? 'فشل في حفظ الإعدادات');
+      }
+    } catch (err) {
+      console.error(err);
+      showError('حدث خطأ أثناء حفظ الإعدادات');
+    }
   };
 
-  const handleReset = () => {
+  const handleReset = async () => {
     setSettings(DEFAULT_SETTINGS);
+    try {
+      const res = await settingsApi.update(DEFAULT_SETTINGS as any);
+      if (!res.success) showError(res.error ?? 'فشل إعادة ضبط الإعدادات على الخادم');
+      else showSuccess('تم إعادة ضبط الإعدادات');
+    } catch (err) {
+      console.error(err);
+      showError('حدث خطأ أثناء إعادة الضبط');
+    }
     localStorage.removeItem('app_settings');
     setResetConfirm(false);
     setSaved(true);
     setTimeout(() => setSaved(false), 2500);
   };
 
-  const handleExport = () => {
+  const handleExport = async () => {
+    try {
+      const res = await settingsApi.backup();
+      if (res.success && res.data) {
+        const blob = new Blob([JSON.stringify(res.data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `almunassiq-backup-${new Date().toISOString().split('T')[0]}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+        showSuccess('تم إنشاء نسخة احتياطية');
+        return;
+      }
+    } catch (err) {
+      console.error(err);
+      // fallback to local export
+    }
+
     const data = {
       settings: JSON.parse(localStorage.getItem('app_settings') ?? '{}'),
       inventory_items: JSON.parse(localStorage.getItem('inventory_items') ?? '[]'),
@@ -201,16 +253,30 @@ export default function SettingsPage() {
     const file = e.target.files?.[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = evt => {
+    reader.onload = async evt => {
       try {
         const data = JSON.parse(evt.target?.result as string);
+        // try restore via API
+        try {
+          const res = await settingsApi.restore(data);
+          if (res.success) {
+            showSuccess('تم استعادة البيانات من الخادم');
+            window.location.reload();
+            return;
+          }
+        } catch (err) {
+          console.error('restore api failed', err);
+        }
+
+        // fallback to local import if server restore not available
         if (data.inventory_items) localStorage.setItem('inventory_items', JSON.stringify(data.inventory_items));
         if (data.purchase_invoices) localStorage.setItem('purchase_invoices', JSON.stringify(data.purchase_invoices));
         if (data.sales_invoices) localStorage.setItem('sales_invoices', JSON.stringify(data.sales_invoices));
         if (data.warehouses) localStorage.setItem('warehouses', JSON.stringify(data.warehouses));
         if (data.settings) localStorage.setItem('app_settings', JSON.stringify(data.settings));
         window.location.reload();
-      } catch {
+      } catch (err) {
+        console.error(err);
         showError('ملف غير صالح. يرجى التحقق من الملف وإعادة المحاولة.');
       }
     };

@@ -11,6 +11,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { SystemUser, UserRole, UserStatus } from './types';
+import { authToSystemUser } from './lib/user';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -193,8 +194,17 @@ export default function UsersPage() {
   const [users, setUsers] = useState<SystemUser[]>(() => {
     try {
       const saved = localStorage.getItem('system_users');
-      return saved ? JSON.parse(saved) : INITIAL_USERS;
-    } catch { return INITIAL_USERS; }
+      if (!saved) return INITIAL_USERS;
+      const parsed = JSON.parse(saved) as any[];
+      // Normalize any incoming objects (support older/auth shapes)
+      return parsed.map(p => {
+        // If already looks like SystemUser, keep as-is
+        if (p && typeof p.fullName === 'string' && typeof p.email === 'string') return p as SystemUser;
+        return authToSystemUser(p);
+      });
+    } catch {
+      return INITIAL_USERS;
+    }
   });
 
   const [searchQuery, setSearchQuery] = useState('');

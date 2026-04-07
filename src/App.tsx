@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {
   Search, Bell, Settings, LayoutDashboard, Package, Warehouse,
   BarChart3, Plus, ShoppingCart, ShoppingBag,
-  X, Menu, LogOut, Users
+  X, Menu, LogOut, Users, User, Truck
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { clsx, type ClassValue } from 'clsx';
@@ -16,6 +16,8 @@ import Warehouses from './Warehouses';
 import Inventory from './Inventory';
 import SettingsPage from './Settings';
 import UsersPage from './Users';
+import Customers from './Customers';
+import Suppliers from './Suppliers';
 
 // Import auth components
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -24,7 +26,7 @@ import Login from './Login';
 // Import API hooks
 import { useInventory } from './hooks/useApi';
 
-type Page = 'dashboard' | 'inventory' | 'purchases' | 'sales' | 'reports' | 'warehouses' | 'users' | 'settings';
+type Page = 'dashboard' | 'inventory' | 'purchases' | 'sales' | 'reports' | 'warehouses' | 'customers' | 'suppliers' | 'users' | 'settings';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -203,6 +205,8 @@ function AppContent() {
     sales: 'فواتير المبيعات',
     reports: 'التقارير والتحليلات',
     warehouses: 'إدارة المخازن',
+    customers: 'إدارة العملاء',
+    suppliers: 'إدارة الموردين',
     users: 'إدارة المستخدمين',
     settings: 'الإعدادات',
   };
@@ -264,6 +268,22 @@ function AppContent() {
             active={currentPage === 'inventory'}
             onClick={() => navigateTo('inventory')}
             badge={outOfStockCount > 0 ? outOfStockCount : undefined}
+          />
+
+          <div className="px-3 pt-4 pb-1">
+            <p className="text-[9px] font-bold text-blue-400 uppercase tracking-widest">جهات الاتصال</p>
+          </div>
+          <NavItem
+            icon={<User size={18} />}
+            label="العملاء"
+            active={currentPage === 'customers'}
+            onClick={() => navigateTo('customers')}
+          />
+          <NavItem
+            icon={<Truck size={18} />}
+            label="الموردون"
+            active={currentPage === 'suppliers'}
+            onClick={() => navigateTo('suppliers')}
           />
 
           <div className="px-3 pt-4 pb-1">
@@ -405,6 +425,16 @@ function AppContent() {
             {currentPage === 'warehouses' && (
               <motion.div key="warehouses" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }}>
                 <Warehouses inventoryItems={inventoryItems} />
+              </motion.div>
+            )}
+            {currentPage === 'customers' && (
+              <motion.div key="customers" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }}>
+                <Customers />
+              </motion.div>
+            )}
+            {currentPage === 'suppliers' && (
+              <motion.div key="suppliers" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }}>
+                <Suppliers />
               </motion.div>
             )}
             {currentPage === 'users' && (
