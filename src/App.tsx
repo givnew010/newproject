@@ -4,6 +4,8 @@ import {
   BarChart3, Plus, ShoppingCart, ShoppingBag,
   X, Menu, LogOut, Users, User, Truck
 } from 'lucide-react';
+import Sidebar from './components/layout/Sidebar';
+import Header from './components/layout/Header';
 import { motion, AnimatePresence } from 'motion/react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -40,52 +42,7 @@ interface NavItemProps {
   badge?: number;
 }
 
-function NavItem({ icon, label, active, onClick, badge }: NavItemProps) {
-  return (
-    <button
-      onClick={onClick}
-      className={cn(
-        'w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-right group relative',
-        active
-          ? 'bg-white text-primary shadow-sm font-bold'
-          : 'text-blue-100 hover:bg-white/15 hover:text-white'
-      )}
-    >
-      <span className={cn('flex-shrink-0 transition-colors', active ? 'text-primary' : 'text-blue-200 group-hover:text-white')}>
-        {icon}
-      </span>
-      <span className="flex-1">{label}</span>
-      {badge !== undefined && badge > 0 && (
-        <span className="flex-shrink-0 bg-red-500 text-white text-[10px] font-bold min-w-[18px] h-[18px] rounded-full flex items-center justify-center px-1">
-          {badge}
-        </span>
-      )}
-      {active && (
-        <motion.div
-          layoutId="activeIndicator"
-          className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-primary rounded-full"
-          transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-        />
-      )}
-    </button>
-  );
-}
-
-function IconButton({ icon, onClick, badge }: { icon: React.ReactNode; onClick?: () => void; badge?: number }) {
-  return (
-    <button
-      onClick={onClick}
-      className="relative p-2.5 text-on-surface-variant hover:text-primary hover:bg-primary-fixed/50 rounded-xl transition-all"
-    >
-      {icon}
-      {badge !== undefined && badge > 0 && (
-        <span className="absolute -top-0.5 -right-0.5 bg-red-500 text-white text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
-          {badge}
-        </span>
-      )}
-    </button>
-  );
-}
+// Sidebar and Header extracted to components/layout
 
 interface StatCardProps {
   label: string;
@@ -213,7 +170,6 @@ function AppContent() {
 
   return (
     <div className="min-h-screen bg-background text-on-surface font-body">
-      {/* Mobile Overlay */}
       <AnimatePresence>
         {isSidebarOpen && (
           <motion.div
@@ -226,178 +182,16 @@ function AppContent() {
         )}
       </AnimatePresence>
 
-      {/* Sidebar */}
-      <aside className={cn(
-        'fixed inset-y-0 right-0 z-50 w-64 flex flex-col transition-transform duration-300',
-        'bg-gradient-to-b from-blue-950 via-blue-900 to-blue-950',
-        isSidebarOpen ? 'translate-x-0' : 'translate-x-full'
-      )}>
-        {/* Logo */}
-        <div className="p-5 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-white/15 rounded-xl flex items-center justify-center backdrop-blur-sm border border-white/20">
-              <Package size={22} className="text-white" />
-            </div>
-            <div>
-              <h1 className="font-headline font-extrabold text-white text-base tracking-wide">المُنسق</h1>
-              <p className="text-[10px] text-blue-300 font-medium mt-px">نظام إدارة المخزون</p>
-            </div>
-          </div>
-          <button
-            onClick={() => setIsSidebarOpen(false)}
-            className="lg:hidden p-1.5 hover:bg-white/10 rounded-lg transition-colors"
-          >
-            <X size={18} className="text-blue-200" />
-          </button>
-        </div>
-
-        {/* Divider */}
-        <div className="mx-4 h-px bg-white/10 mb-3" />
-
-        {/* Navigation */}
-        <nav className="flex-1 px-3 space-y-0.5 overflow-y-auto">
-          <NavItem
-            icon={<LayoutDashboard size={18} />}
-            label="لوحة التحكم"
-            active={currentPage === 'dashboard'}
-            onClick={() => navigateTo('dashboard')}
-          />
-          <NavItem
-            icon={<Package size={18} />}
-            label="الأصناف"
-            active={currentPage === 'inventory'}
-            onClick={() => navigateTo('inventory')}
-            badge={outOfStockCount > 0 ? outOfStockCount : undefined}
-          />
-
-          <div className="px-3 pt-4 pb-1">
-            <p className="text-[9px] font-bold text-blue-400 uppercase tracking-widest">جهات الاتصال</p>
-          </div>
-          <NavItem
-            icon={<User size={18} />}
-            label="العملاء"
-            active={currentPage === 'customers'}
-            onClick={() => navigateTo('customers')}
-          />
-          <NavItem
-            icon={<Truck size={18} />}
-            label="الموردون"
-            active={currentPage === 'suppliers'}
-            onClick={() => navigateTo('suppliers')}
-          />
-
-          <div className="px-3 pt-4 pb-1">
-            <p className="text-[9px] font-bold text-blue-400 uppercase tracking-widest">الفواتير</p>
-          </div>
-          <NavItem
-            icon={<ShoppingBag size={18} />}
-            label="فواتير المبيعات"
-            active={currentPage === 'sales'}
-            onClick={() => navigateTo('sales')}
-          />
-          <NavItem
-            icon={<ShoppingCart size={18} />}
-            label="فواتير المشتريات"
-            active={currentPage === 'purchases'}
-            onClick={() => navigateTo('purchases')}
-          />
-
-          <div className="px-3 pt-4 pb-1">
-            <p className="text-[9px] font-bold text-blue-400 uppercase tracking-widest">تحليلات</p>
-          </div>
-          <NavItem
-            icon={<BarChart3 size={18} />}
-            label="التقارير"
-            active={currentPage === 'reports'}
-            onClick={() => navigateTo('reports')}
-          />
-          <NavItem
-            icon={<Warehouse size={18} />}
-            label="المخازن"
-            active={currentPage === 'warehouses'}
-            onClick={() => navigateTo('warehouses')}
-          />
-
-          <div className="px-3 pt-4 pb-1">
-            <p className="text-[9px] font-bold text-blue-400 uppercase tracking-widest">النظام</p>
-          </div>
-          <NavItem
-            icon={<Users size={18} />}
-            label="إدارة المستخدمين"
-            active={currentPage === 'users'}
-            onClick={() => navigateTo('users')}
-          />
-          <NavItem
-            icon={<Settings size={18} />}
-            label="الإعدادات"
-            active={currentPage === 'settings'}
-            onClick={() => navigateTo('settings')}
-          />
-        </nav>
-
-        {/* Bottom */}
-        <div className="p-3 border-t border-white/10">
-          <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/10 transition-colors cursor-pointer">
-            <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
-              <span className="text-white font-bold text-sm">م</span>
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-xs font-bold text-white truncate">مدير النظام</p>
-              <p className="text-[10px] text-blue-300 truncate">admin@almunassiq.com</p>
-            </div>
-            <LogOut size={14} className="text-blue-300 flex-shrink-0" />
-          </div>
-        </div>
-      </aside>
+      {/* Sidebar (extracted) */}
+      <Sidebar currentPage={currentPage} navigateTo={(p) => navigateTo(p as Page)} isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} outOfStockCount={outOfStockCount} />
 
       {/* Main Content */}
       <main className={cn(
         'min-h-screen flex flex-col transition-all duration-300',
         isSidebarOpen ? 'lg:mr-64' : 'mr-0'
       )}>
-        {/* Header */}
-        <header className="sticky top-0 z-30 glass-panel border-b border-surface-container-high px-4 lg:px-6 py-3 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3 min-w-0">
-            <button
-              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-              className="p-2 hover:bg-surface-container-low rounded-xl transition-colors flex-shrink-0"
-            >
-              <Menu size={22} className="text-on-surface-variant" />
-            </button>
-
-            <div className="min-w-0">
-              <h2 className="font-headline font-extrabold text-on-surface text-lg lg:text-xl leading-tight">
-                {pageTitle[currentPage]}
-              </h2>
-            </div>
-
-            {currentPage === 'inventory' && (
-              <div className="hidden md:flex relative ml-2">
-                <Search size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant/60" />
-                <input
-                  type="text"
-                  placeholder="بحث في الأصناف..."
-                  value={searchQuery}
-                  onChange={e => setSearchQuery(e.target.value)}
-                  className="bg-surface-container-low border border-surface-container-high rounded-xl pr-9 pl-10 py-2 w-64 focus:ring-2 focus:ring-primary focus:border-primary transition-all text-sm outline-none"
-                />
-                {searchQuery && (
-                  <button onClick={() => setSearchQuery('')} className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-error transition-colors">
-                    <X size={14} />
-                  </button>
-                )}
-              </div>
-            )}
-          </div>
-
-          <div className="flex items-center gap-1 flex-shrink-0">
-            <IconButton icon={<Bell size={19} />} badge={alertsCount} />
-            <IconButton icon={<Settings size={19} />} onClick={() => navigateTo('settings')} />
-            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary to-blue-700 flex items-center justify-center ml-1 cursor-pointer shadow-sm">
-              <span className="text-white font-extrabold text-sm">م</span>
-            </div>
-          </div>
-        </header>
+        {/* Header (extracted) */}
+        <Header currentPage={currentPage} pageTitle={pageTitle[currentPage]} isSidebarOpen={isSidebarOpen} toggleSidebar={() => setIsSidebarOpen(s => !s)} searchQuery={searchQuery} setSearchQuery={setSearchQuery} alertsCount={alertsCount} navigateTo={(p) => navigateTo(p as Page)} />
 
         {/* Page Content */}
         <div className="flex-1">
