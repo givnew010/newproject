@@ -15,6 +15,7 @@ import { twMerge } from 'tailwind-merge';
 import { Warehouse as WarehouseType, InventoryItem } from './types';
 import { useWarehouses, useCreateWarehouse, useUpdateWarehouse, useDeleteWarehouse } from './hooks/useApi';
 import { useToast } from './context/ToastContext';
+import { Button, Input } from './components/ui';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -93,18 +94,14 @@ function FieldGroup({ label, placeholder, type = 'text', value, onChange, requir
   value: string; onChange: (v: string) => void; required?: boolean;
 }) {
   return (
-    <div className="space-y-1">
-      <label className="text-[11px] font-bold text-on-surface-variant">
-        {label}{required && <span className="text-error mr-0.5">*</span>}
-      </label>
-      <input
-        type={type}
-        placeholder={placeholder}
-        value={value}
-        onChange={e => onChange(e.target.value)}
-        className="w-full bg-surface-container-high border-none rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary transition-all text-sm outline-none"
-      />
-    </div>
+    <Input
+      label={`${label}${required ? ' *' : ''}`}
+      placeholder={placeholder}
+      type={type}
+      value={value}
+      onChange={e => onChange((e.target as HTMLInputElement).value)}
+      className="space-y-1"
+    />
   );
 }
 
@@ -271,13 +268,10 @@ export default function Warehouses({ inventoryItems }: Props) {
             </button>
           )}
         </div>
-        <button
-          onClick={openAdd}
-          className="w-full sm:w-auto bg-gradient-to-r from-primary to-primary-container text-white px-6 py-2.5 rounded-xl font-bold flex items-center justify-center gap-2 hover:scale-[1.02] transition-transform shadow-lg shadow-primary/20 active:scale-95"
-        >
+        <Button onClick={openAdd} variant="primary" size="md" className="w-full sm:w-auto flex items-center justify-center gap-2">
           <Plus size={20} />
           <span className="text-sm">إضافة مستودع</span>
-        </button>
+        </Button>
       </div>
 
       {/* Warehouses Grid */}
@@ -288,9 +282,9 @@ export default function Warehouses({ inventoryItems }: Props) {
             {searchQuery ? 'لا توجد مستودعات تطابق البحث' : 'لا توجد مستودعات بعد'}
           </p>
           {!searchQuery && (
-            <button onClick={openAdd} className="text-xs text-primary hover:underline font-bold">
+            <Button variant="ghost" size="sm" onClick={openAdd} className="text-primary hover:underline font-bold">
               أضف أول مستودع
-            </button>
+            </Button>
           )}
         </div>
       ) : (

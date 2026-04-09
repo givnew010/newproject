@@ -11,6 +11,7 @@ import { InventoryItem, PurchaseInvoice, SalesInvoice } from './types';
 
 // Import API hooks
 import { useDashboard } from './hooks/useApi';
+import { KPICard } from './components/ui';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -129,48 +130,35 @@ export default function Dashboard({ onNavigate }: Props) {
       {/* KPI Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <KPICard
-          label="قيمة المخزون"
-          value={`${totalInventoryValue.toLocaleString('ar-SA')}`}
-          unit="ر.س"
-          sub={`${dashboard?.inventory_count || 0} صنف في المخزون`}
+          title="قيمة المخزون"
+          value={`${totalInventoryValue.toLocaleString('ar-SA')} ر.س`}
+          subtitle={`${dashboard?.inventory_count || 0} صنف في المخزون`}
           icon={<Layers size={20} />}
-          gradient="from-blue-600 to-blue-700"
-          iconBg="bg-white/20"
-          iconColor="text-white"
+          gradient="blue"
           onClick={() => onNavigate('inventory')}
         />
         <KPICard
-          label="إجمالي المبيعات"
-          value={`${totalSales.toLocaleString('ar-SA')}`}
-          unit="ر.س"
-          sub={`${dashboard?.sales_count_today || 0} فاتورة مبيعات`}
+          title="إجمالي المبيعات"
+          value={`${totalSales.toLocaleString('ar-SA')} ر.س`}
+          subtitle={`${dashboard?.sales_count_today || 0} فاتورة مبيعات`}
           icon={<TrendingUp size={20} />}
-          gradient="from-emerald-500 to-emerald-600"
-          iconBg="bg-white/20"
-          iconColor="text-white"
+          gradient="emerald"
           onClick={() => onNavigate('sales')}
         />
         <KPICard
-          label="إجمالي المشتريات"
-          value={`${totalPurchases.toLocaleString('ar-SA')}`}
-          unit="ر.س"
-          sub={`${dashboard?.purchases_count_today || 0} فاتورة مشتريات`}
+          title="إجمالي المشتريات"
+          value={`${totalPurchases.toLocaleString('ar-SA')} ر.س`}
+          subtitle={`${dashboard?.purchases_count_today || 0} فاتورة مشتريات`}
           icon={<ShoppingCart size={20} />}
-          gradient="from-violet-500 to-violet-600"
-          iconBg="bg-white/20"
-          iconColor="text-white"
+          gradient="purple"
           onClick={() => onNavigate('purchases')}
         />
         <KPICard
-          label={grossProfit >= 0 ? 'صافي الربح' : 'صافي الخسارة'}
-          value={`${Math.abs(grossProfit).toLocaleString('ar-SA')}`}
-          unit="ر.س"
-          sub={`هامش ${Math.abs(profitMargin)}%`}
+          title={grossProfit >= 0 ? 'صافي الربح' : 'صافي الخسارة'}
+          value={`${grossProfit < 0 ? '−' : ''}${Math.abs(grossProfit).toLocaleString('ar-SA')} ر.س`}
+          subtitle={`هامش ${Math.abs(profitMargin)}%`}
           icon={grossProfit >= 0 ? <DollarSign size={20} /> : <TrendingDown size={20} />}
-          gradient={grossProfit >= 0 ? 'from-amber-500 to-orange-500' : 'from-red-500 to-red-600'}
-          iconBg="bg-white/20"
-          iconColor="text-white"
-          negative={grossProfit < 0}
+          gradient={grossProfit >= 0 ? 'amber' : 'red'}
         />
       </div>
 
@@ -306,38 +294,6 @@ export default function Dashboard({ onNavigate }: Props) {
         </div>
       )}
     </div>
-  );
-}
-
-function KPICard({
-  label, value, unit, sub, icon, gradient, iconBg, iconColor, onClick, negative
-}: {
-  label: string; value: string; unit: string; sub: string;
-  icon: React.ReactNode; gradient: string; iconBg: string; iconColor: string;
-  onClick?: () => void; negative?: boolean;
-}) {
-  return (
-    <motion.div
-      whileHover={onClick ? { scale: 1.02, y: -2 } : {}}
-      whileTap={onClick ? { scale: 0.98 } : {}}
-      onClick={onClick}
-      className={cn(
-        'bg-gradient-to-br rounded-2xl p-4 shadow-sm',
-        gradient,
-        onClick && 'cursor-pointer'
-      )}
-    >
-      <div className="flex items-start justify-between gap-2 mb-3">
-        <p className="text-xs font-semibold text-white/80 leading-tight">{label}</p>
-        <div className={cn('w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0', iconBg, iconColor)}>
-          {icon}
-        </div>
-      </div>
-      <p className="text-xl lg:text-2xl font-extrabold text-white leading-tight font-mono">
-        {negative && '−'}{value}
-      </p>
-      <p className="text-xs text-white/70 mt-1">{unit} — {sub}</p>
-    </motion.div>
   );
 }
 

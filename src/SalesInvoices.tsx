@@ -10,6 +10,7 @@ import { twMerge } from 'tailwind-merge';
 import { SalesInvoice, InvoiceLineItem, InventoryItem, ItemStatus } from './types';
 import { useSales, useCreateSale, useUpdateSale, useDeleteSale, useCreateSalePayment, useCustomers, useInventory } from './hooks/useApi';
 import { useToast } from './context/ToastContext';
+import { KPICard, Button, Input } from './components/ui';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -68,14 +69,13 @@ function FieldGroup({ label, placeholder, type = 'text', value, onChange }: {
   label: string; placeholder: string; type?: string; value: string; onChange: (v: string) => void;
 }) {
   return (
-    <div className="space-y-1.5">
-      <label className="text-xs font-bold text-on-surface-variant">{label}</label>
-      <input
-        type={type} placeholder={placeholder} value={value}
-        onChange={e => onChange(e.target.value)}
-        className="w-full bg-surface-container-low border border-surface-container-high rounded-xl px-3 py-2.5 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all text-sm outline-none"
-      />
-    </div>
+    <Input
+      label={label}
+      placeholder={placeholder}
+      type={type}
+      value={value}
+      onChange={e => onChange((e.target as HTMLInputElement).value)}
+    />
   );
 }
 
@@ -218,36 +218,27 @@ export default function SalesInvoices({}: Props) {
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-2xl p-4 shadow-sm">
-          <div className="flex items-start justify-between mb-2">
-            <p className="text-xs font-semibold text-white/80">إجمالي فواتير المبيعات</p>
-            <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0">
-              <FileText size={18} className="text-white" />
-            </div>
-          </div>
-          <p className="text-3xl font-extrabold text-white font-mono">{invoices.length}</p>
-          <p className="text-xs text-white/70 mt-1">فاتورة مسجلة</p>
-        </div>
-        <div className="bg-gradient-to-br from-teal-500 to-teal-600 rounded-2xl p-4 shadow-sm">
-          <div className="flex items-start justify-between mb-2">
-            <p className="text-xs font-semibold text-white/80">إجمالي الإيرادات</p>
-            <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0">
-              <TrendingUp size={18} className="text-white" />
-            </div>
-          </div>
-          <p className="text-2xl font-extrabold text-white font-mono">{totalRevenue.toLocaleString('ar-SA')}</p>
-          <p className="text-xs text-white/70 mt-1">ريال سعودي</p>
-        </div>
-        <div className="bg-gradient-to-br from-cyan-500 to-cyan-600 rounded-2xl p-4 shadow-sm">
-          <div className="flex items-start justify-between mb-2">
-            <p className="text-xs font-semibold text-white/80">متوسط قيمة الفاتورة</p>
-            <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0">
-              <ShoppingBag size={18} className="text-white" />
-            </div>
-          </div>
-          <p className="text-2xl font-extrabold text-white font-mono">{avgInvoice.toLocaleString('ar-SA')}</p>
-          <p className="text-xs text-white/70 mt-1">ريال سعودي</p>
-        </div>
+        <KPICard
+          title="إجمالي فواتير المبيعات"
+          value={`${invoices.length}`}
+          subtitle="فاتورة مسجلة"
+          icon={<FileText size={18} />}
+          gradient="emerald"
+        />
+        <KPICard
+          title="إجمالي الإيرادات"
+          value={`${totalRevenue.toLocaleString('ar-SA')} ر.س`}
+          subtitle="ريال سعودي"
+          icon={<TrendingUp size={18} />}
+          gradient="blue"
+        />
+        <KPICard
+          title="متوسط قيمة الفاتورة"
+          value={`${avgInvoice.toLocaleString('ar-SA')} ر.س`}
+          subtitle="ريال سعودي"
+          icon={<ShoppingBag size={18} />}
+          gradient="purple"
+        />
       </div>
 
       {/* Actions Bar */}
@@ -264,13 +255,10 @@ export default function SalesInvoices({}: Props) {
           <button className="w-full sm:w-auto px-4 py-2 bg-white text-on-surface border border-surface-container-high rounded-xl font-bold text-sm hover:bg-surface-container-low transition-all flex items-center justify-center gap-2 shadow-sm">
             <Download size={15} />تصدير
           </button>
-          <button
-            onClick={openAdd}
-            className="w-full sm:w-auto bg-emerald-600 text-white px-5 py-2 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-500/20 active:scale-95"
-          >
+          <Button onClick={openAdd} variant="success" size="md" className="w-full sm:w-auto flex items-center justify-center gap-2">
             <Plus size={18} />
             <span className="text-sm">فاتورة مبيعات</span>
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -297,7 +285,7 @@ export default function SalesInvoices({}: Props) {
                         <ShoppingBag size={28} className="text-emerald-400" />
                       </div>
                       <p className="text-sm font-medium">لا توجد فواتير مبيعات بعد</p>
-                      <button onClick={openAdd} className="text-xs text-emerald-600 hover:underline font-bold">أضف أول فاتورة مبيعات</button>
+                      <Button variant="ghost" size="sm" onClick={openAdd} className="text-emerald-600 hover:underline font-bold">أضف أول فاتورة مبيعات</Button>
                     </div>
                   </td>
                 </tr>
@@ -670,8 +658,8 @@ export default function SalesInvoices({}: Props) {
                 </div>
               </div>
               <div className="p-4 border-t border-surface-container-low flex gap-2">
-                <button onClick={() => setPaymentModal({ invoice: null, amount: '', method: 'cash', notes: '' })} className="flex-1 py-2.5 rounded-xl border border-surface-container-high text-on-surface font-bold text-sm hover:bg-surface-container-low transition-colors">إلغاء</button>
-                <button onClick={handlePayment} disabled={!paymentModal.amount} className="flex-1 py-2.5 rounded-xl bg-blue-600 text-white font-bold text-sm hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">إضافة الدفعة</button>
+                <Button variant="outline" size="md" className="flex-1" onClick={() => setPaymentModal({ invoice: null, amount: '', method: 'cash', notes: '' })}>إلغاء</Button>
+                <Button variant="primary" size="md" className="flex-1" onClick={handlePayment} disabled={!paymentModal.amount}>إضافة الدفعة</Button>
               </div>
             </motion.div>
           </div>
@@ -697,8 +685,8 @@ export default function SalesInvoices({}: Props) {
               <h3 className="text-base font-extrabold text-on-surface mb-2">حذف الفاتورة</h3>
               <p className="text-sm text-on-surface-variant mb-6">هل أنت متأكد من حذف هذه الفاتورة؟</p>
               <div className="flex gap-3">
-                <button onClick={() => setInvoiceToDelete(null)} className="flex-1 py-3 rounded-xl border border-surface-container-high text-on-surface font-bold text-sm hover:bg-surface-container-low transition-colors">إلغاء</button>
-                <button onClick={confirmDelete} className="flex-1 py-3 rounded-xl bg-red-600 text-white font-bold text-sm hover:bg-red-700 transition-colors">حذف</button>
+                <Button variant="outline" size="md" className="flex-1" onClick={() => setInvoiceToDelete(null)}>إلغاء</Button>
+                <Button variant="danger" size="md" className="flex-1" onClick={confirmDelete}>حذف</Button>
               </div>
             </motion.div>
           </div>

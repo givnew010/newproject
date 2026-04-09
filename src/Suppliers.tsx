@@ -6,6 +6,7 @@ import { twMerge } from 'tailwind-merge';
 import { useSuppliers, useMutation } from './hooks/useApi';
 import ConfirmDialog from './components/ConfirmDialog';
 import { useToast } from './context/ToastContext';
+import { Button, Input, Badge } from './components/ui';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -150,40 +151,30 @@ export default function Suppliers() {
               placeholder="بحث بالاسم أو الهاتف أو البريد..."
               value={search}
               onChange={e => setSearch(e.target.value)}
-              className="w-full bg-white border border-surface-container-high rounded-xl pr-9 pl-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-amber-400 focus:border-amber-400 transition-all shadow-sm"
+              className="input-field pr-9"
             />
             {search && (
-              <button onClick={() => setSearch('')} className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-error">
+              <button onClick={() => setSearch('')} className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-error transition-colors">
                 <X size={14} />
               </button>
             )}
           </div>
 
-          <button
-            onClick={() => setHasBalance(h => !h)}
-            className={cn(
-              'px-3.5 py-2.5 rounded-xl border text-sm font-medium transition-all shadow-sm',
-              hasBalance ? 'bg-amber-600 text-white border-amber-600' : 'bg-white text-on-surface-variant border-surface-container-high hover:bg-surface-container-low'
-            )}
-          >
-            كشف المدفوعات
-          </button>
+          <Button onClick={() => setHasBalance(h => !h)} variant={hasBalance ? 'primary' : 'secondary'} size="md" className="px-3.5">كشف المدفوعات</Button>
         </div>
 
         <div className="flex items-center gap-2 w-full sm:w-auto">
-          <button onClick={() => { refetch(); }} className="flex items-center gap-2 px-4 py-2.5 bg-white border border-surface-container-high rounded-xl text-sm font-medium hover:bg-surface-container-low transition-all shadow-sm">
-            تحديث
-          </button>
-          <button onClick={openAdd} className="flex items-center gap-2 bg-amber-600 text-white px-5 py-2.5 rounded-xl font-bold text-sm hover:bg-amber-700 transition-all shadow-lg shadow-amber-500/20 active:scale-95">
+          <Button variant="secondary" size="md" onClick={() => { refetch(); }} className="flex items-center gap-2">تحديث</Button>
+          <Button variant="primary" size="md" onClick={openAdd} className="flex items-center gap-2 shadow-lg active:scale-95">
             <Plus size={18} />
             إضافة مورد
-          </button>
+          </Button>
         </div>
       </div>
 
       {loading && (
         <div className="flex items-center justify-center py-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-600"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
           <span className="mr-2 text-sm text-on-surface-variant">جاري التحميل...</span>
         </div>
       )}
@@ -223,7 +214,7 @@ export default function Suppliers() {
                   </tr>
                 ) : (
                   suppliers.map((s: any, idx: number) => (
-                    <motion.tr key={s.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: idx * 0.02 }} className="border-b border-surface-container-low last:border-0 hover:bg-amber-50/40 transition-colors group">
+                    <motion.tr key={s.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: idx * 0.02 }} className="table-row group">
                       <td className="px-5 py-3.5">
                         <div>
                           <p className="text-sm font-bold text-on-surface">{s.name}</p>
@@ -234,27 +225,27 @@ export default function Suppliers() {
                         <p className="text-sm text-on-surface">{s.phone || '—'}</p>
                       </td>
                       <td className="px-5 py-3.5">
-                        <p className={cn('text-sm font-bold', (s.total_due || 0) > 0 ? 'text-red-600' : 'text-amber-700')}>{(s.total_due || 0).toLocaleString('ar-SA')} ر.س</p>
+                        <p className={cn('text-sm font-bold', (s.total_due || 0) > 0 ? 'text-error' : 'text-warning')}>{(s.total_due || 0).toLocaleString('ar-SA')} ر.س</p>
                         <p className="text-[12px] text-on-surface-variant">مدفوع: {(s.total_paid || 0).toLocaleString('ar-SA')}</p>
                       </td>
                       <td className="px-5 py-3.5 hidden md:table-cell">
                         <p className="text-sm text-on-surface">{s.total_invoices ?? '—'}</p>
                       </td>
                       <td className="px-5 py-3.5">
-                        <span className={cn('text-[12px] font-bold px-2 py-1 rounded-full', s.is_active ? 'bg-amber-50 text-amber-700 border border-amber-100' : 'bg-slate-50 text-slate-500 border border-slate-100')}>{s.is_active ? 'نشط' : 'معطّل'}</span>
+                        {s.is_active ? <Badge variant="emerald">نشط</Badge> : <Badge variant="slate">معطّل</Badge>}
                       </td>
                       <td className="px-5 py-3.5 text-left">
                         <div className="flex items-center justify-end gap-1">
-                          <button onClick={() => openStatement(s)} title="كشف الحساب" className="p-2 rounded-xl text-on-surface-variant/40 hover:text-amber-700 hover:bg-amber-50 transition-all">
+                          <button onClick={() => openStatement(s)} title="كشف الحساب" className="p-2 rounded-xl text-on-surface-variant/40 hover:text-primary hover:bg-surface-container-low transition-all">
                             <CreditCard size={15} />
                           </button>
-                          <button onClick={() => {/* TODO: show invoices view */}} title="فواتيره" className="p-2 rounded-xl text-on-surface-variant/40 hover:text-amber-700 hover:bg-amber-50 transition-all">
+                          <button onClick={() => {/* TODO: show invoices view */}} title="فواتيره" className="p-2 rounded-xl text-on-surface-variant/40 hover:text-primary hover:bg-surface-container-low transition-all">
                             <FileText size={15} />
                           </button>
-                          <button onClick={() => openEdit(s)} title="تعديل" className="p-2 rounded-xl text-on-surface-variant/40 hover:text-amber-700 hover:bg-amber-50 transition-all">
+                          <button onClick={() => openEdit(s)} title="تعديل" className="p-2 rounded-xl text-on-surface-variant/40 hover:text-primary hover:bg-surface-container-low transition-all">
                             <Edit2 size={15} />
                           </button>
-                          <button onClick={() => requestDelete(s.id)} title="تعطيل" className="p-2 rounded-xl text-error/80 hover:text-error hover:bg-red-50 transition-all">
+                          <button onClick={() => requestDelete(s.id)} title="تعطيل" className="p-2 rounded-xl text-error/80 hover:text-error hover:bg-error/10 transition-all">
                             <Trash2 size={15} />
                           </button>
                         </div>
@@ -279,32 +270,17 @@ export default function Suppliers() {
                 <button onClick={() => setIsModalOpen(false)} className="p-2 rounded-xl hover:bg-surface-container-low"><X size={16} /></button>
               </div>
               <div className="p-5 space-y-3">
-                <div>
-                  <label className="text-xs font-bold mb-1 block">الاسم</label>
-                  <input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} className="w-full border rounded-xl p-3 text-sm" />
-                </div>
+                <Input label="الاسم" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} />
                 <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="text-xs font-bold mb-1 block">الهاتف</label>
-                    <input value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} className="w-full border rounded-xl p-3 text-sm" />
-                  </div>
-                  <div>
-                    <label className="text-xs font-bold mb-1 block">البريد</label>
-                    <input value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} className="w-full border rounded-xl p-3 text-sm" />
-                  </div>
+                  <Input label="الهاتف" value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} />
+                  <Input label="البريد" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} />
                 </div>
-                <div>
-                  <label className="text-xs font-bold mb-1 block">العنوان</label>
-                  <input value={form.address} onChange={e => setForm({ ...form, address: e.target.value })} className="w-full border rounded-xl p-3 text-sm" />
-                </div>
-                <div>
-                  <label className="text-xs font-bold mb-1 block">الحد الائتماني</label>
-                  <input type="number" value={form.credit_limit} onChange={e => setForm({ ...form, credit_limit: Number(e.target.value) })} className="w-full border rounded-xl p-3 text-sm" />
-                </div>
+                <Input label="العنوان" value={form.address} onChange={e => setForm({ ...form, address: e.target.value })} />
+                <Input label="الحد الائتماني" type="number" value={form.credit_limit} onChange={e => setForm({ ...form, credit_limit: Number(e.target.value) })} />
               </div>
               <div className="p-4 border-t border-surface-container-low flex items-center justify-end gap-2">
-                <button onClick={() => setIsModalOpen(false)} className="px-4 py-2 rounded-xl border">إلغاء</button>
-                <button onClick={handleSave} className="px-4 py-2 rounded-xl bg-amber-600 text-white font-bold">حفظ</button>
+                <Button variant="outline" onClick={() => setIsModalOpen(false)}>إلغاء</Button>
+                <Button variant="primary" onClick={handleSave}>حفظ</Button>
               </div>
             </motion.div>
           </div>
@@ -346,7 +322,7 @@ export default function Suppliers() {
                 </table>
               </div>
               <div className="p-4 border-t border-surface-container-low flex items-center justify-end gap-2">
-                <button onClick={() => setStatementOpen(false)} className="px-4 py-2 rounded-xl border">إغلاق</button>
+                <Button variant="outline" onClick={() => setStatementOpen(false)}>إغلاق</Button>
               </div>
             </motion.div>
           </div>

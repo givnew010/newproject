@@ -13,6 +13,7 @@ import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { InventoryItem, PurchaseInvoice, SalesInvoice } from './types';
 import { reportsApi } from './lib/api';
+import { KPICard, Button } from './components/ui';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -181,8 +182,8 @@ export default function Reports({ inventoryItems }: Props) {
             className="bg-surface-container-high rounded-lg px-3 py-2 text-sm outline-none"
             dir="ltr"
           />
-          <button onClick={fetchReports} className="px-3 py-2 bg-primary text-white rounded-xl text-sm font-bold">تحديث</button>
-          <button onClick={() => { setDateFrom(undefined); setDateTo(undefined); }} className="px-3 py-2 border rounded-xl text-sm">مسح</button>
+          <Button onClick={fetchReports} variant="primary" size="sm">تحديث</Button>
+          <Button onClick={() => { setDateFrom(undefined); setDateTo(undefined); }} variant="outline" size="sm">مسح</Button>
         </div>
       </div>
 
@@ -205,49 +206,10 @@ export default function Reports({ inventoryItems }: Props) {
         <>
           {/* Summary KPIs */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-            <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-2xl p-4 shadow-sm">
-              <div className="flex items-start justify-between mb-2">
-                <p className="text-xs font-semibold text-white/80">إجمالي الإيرادات</p>
-                <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0">
-                  <TrendingUp size={18} className="text-white" />
-                </div>
-              </div>
-              <p className="text-xl font-extrabold text-white font-mono">{totalSales.toLocaleString('ar-SA')}</p>
-              <p className="text-xs text-white/70 mt-1">ريال سعودي</p>
-            </div>
-            <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-2xl p-4 shadow-sm">
-              <div className="flex items-start justify-between mb-2">
-                <p className="text-xs font-semibold text-white/80">إجمالي التكاليف</p>
-                <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0">
-                  <ShoppingCart size={18} className="text-white" />
-                </div>
-              </div>
-              <p className="text-xl font-extrabold text-white font-mono">{totalPurchases.toLocaleString('ar-SA')}</p>
-              <p className="text-xs text-white/70 mt-1">ريال سعودي</p>
-            </div>
-            <div className={cn(
-              "bg-gradient-to-br rounded-2xl p-4 shadow-sm",
-              grossProfit >= 0 ? "from-amber-500 to-orange-500" : "from-red-500 to-red-600"
-            )}>
-              <div className="flex items-start justify-between mb-2">
-                <p className="text-xs font-semibold text-white/80">{grossProfit >= 0 ? 'صافي الربح' : 'صافي الخسارة'}</p>
-                <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0">
-                  {grossProfit >= 0 ? <DollarSign size={18} className="text-white" /> : <TrendingDown size={18} className="text-white" />}
-                </div>
-              </div>
-              <p className="text-xl font-extrabold text-white font-mono">{Math.abs(grossProfit).toLocaleString('ar-SA')}</p>
-              <p className="text-xs text-white/70 mt-1">هامش {profitMargin}%</p>
-            </div>
-            <div className="bg-gradient-to-br from-slate-600 to-slate-700 rounded-2xl p-4 shadow-sm">
-              <div className="flex items-start justify-between mb-2">
-                <p className="text-xs font-semibold text-white/80">قيمة المخزون</p>
-                <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0">
-                  <Layers size={18} className="text-white" />
-                </div>
-              </div>
-              <p className="text-xl font-extrabold text-white font-mono">{totalInventoryValue.toLocaleString('ar-SA')}</p>
-              <p className="text-xs text-white/70 mt-1">{inventoryItems.length} صنف في المخزون</p>
-            </div>
+            <KPICard title="إجمالي الإيرادات" value={`${totalSales.toLocaleString('ar-SA')} ر.س`} subtitle="ريال سعودي" icon={<TrendingUp size={18} />} gradient="emerald" />
+            <KPICard title="إجمالي التكاليف" value={`${totalPurchases.toLocaleString('ar-SA')} ر.س`} subtitle="ريال سعودي" icon={<ShoppingCart size={18} />} gradient="blue" />
+            <KPICard title={grossProfit >= 0 ? 'صافي الربح' : 'صافي الخسارة'} value={`${Math.abs(grossProfit).toLocaleString('ar-SA')} ر.س`} subtitle={`هامش ${profitMargin}%`} icon={grossProfit >= 0 ? <DollarSign size={18} /> : <TrendingDown size={18} />} gradient={grossProfit >= 0 ? 'amber' : 'red'} />
+            <KPICard title="قيمة المخزون" value={`${totalInventoryValue.toLocaleString('ar-SA')} ر.س`} subtitle={`${inventoryItems.length} صنف في المخزون`} icon={<Layers size={18} />} gradient="purple" />
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">

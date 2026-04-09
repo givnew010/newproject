@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Plus, Search, X, Edit2, Trash2, FileText, CreditCard } from 'lucide-react';
+import { Button, Badge } from './components/ui';
 import { motion, AnimatePresence } from 'motion/react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -150,7 +151,7 @@ export default function Customers() {
               placeholder="بحث بالاسم أو الهاتف أو البريد..."
               value={search}
               onChange={e => setSearch(e.target.value)}
-              className="w-full bg-white border border-surface-container-high rounded-xl pr-9 pl-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 transition-all shadow-sm"
+              className="w-full bg-white border border-surface-container-high rounded-xl pr-9 pl-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-success focus:border-success transition-all shadow-sm"
             />
             {search && (
               <button onClick={() => setSearch('')} className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-error">
@@ -159,39 +160,33 @@ export default function Customers() {
             )}
           </div>
 
-          <button
-            onClick={() => setHasBalance(h => !h)}
-            className={cn(
-              'px-3.5 py-2.5 rounded-xl border text-sm font-medium transition-all shadow-sm',
-              hasBalance ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-white text-on-surface-variant border-surface-container-high hover:bg-surface-container-low'
-            )}
-          >
+          <Button variant={hasBalance ? 'success' : 'secondary'} size="sm" onClick={() => setHasBalance(h => !h)}>
             كشف الذمم
-          </button>
+          </Button>
         </div>
 
         <div className="flex items-center gap-2 w-full sm:w-auto">
-          <button onClick={() => { refetch(); }} className="flex items-center gap-2 px-4 py-2.5 bg-white border border-surface-container-high rounded-xl text-sm font-medium hover:bg-surface-container-low transition-all shadow-sm">
+          <Button variant="secondary" onClick={() => { refetch(); }}>
             تحديث
-          </button>
-          <button onClick={openAdd} className="flex items-center gap-2 bg-emerald-600 text-white px-5 py-2.5 rounded-xl font-bold text-sm hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-500/20 active:scale-95">
+          </Button>
+          <Button variant="success" size="md" onClick={openAdd}>
             <Plus size={18} />
             إضافة عميل
-          </button>
+          </Button>
         </div>
       </div>
 
       {loading && (
         <div className="flex items-center justify-center py-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-4 border-success border-t-transparent"></div>
           <span className="mr-2 text-sm text-on-surface-variant">جاري التحميل...</span>
         </div>
       )}
 
       {error && (
-        <div className="bg-error/10 border border-error/20 rounded-xl p-4 text-center">
+          <div className="bg-error/10 border border-error/20 rounded-xl p-4 text-center">
           <p className="text-error font-medium">{error}</p>
-          <button onClick={refetch} className="mt-2 px-4 py-2 bg-error text-white rounded-lg hover:bg-error/90 transition-colors">إعادة المحاولة</button>
+          <Button onClick={refetch} variant="danger" className="mt-2">إعادة المحاولة</Button>
         </div>
       )}
 
@@ -223,7 +218,7 @@ export default function Customers() {
                   </tr>
                 ) : (
                   customers.map((c: any, idx: number) => (
-                    <motion.tr key={c.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: idx * 0.02 }} className="border-b border-surface-container-low last:border-0 hover:bg-emerald-50/40 transition-colors group">
+                    <motion.tr key={c.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: idx * 0.02 }} className="border-b border-surface-container-low last:border-0 hover:bg-success/40 transition-colors group">
                       <td className="px-5 py-3.5">
                         <div>
                           <p className="text-sm font-bold text-on-surface">{c.name}</p>
@@ -234,27 +229,27 @@ export default function Customers() {
                         <p className="text-sm text-on-surface">{c.phone || '—'}</p>
                       </td>
                       <td className="px-5 py-3.5">
-                        <p className={cn('text-sm font-bold', (c.total_due || 0) > 0 ? 'text-red-600' : 'text-emerald-700')}>{(c.total_due || 0).toLocaleString('ar-SA')} ر.س</p>
+                        <p className={cn('text-sm font-bold', (c.total_due || 0) > 0 ? 'text-error' : 'text-success')}>{(c.total_due || 0).toLocaleString('ar-SA')} ر.س</p>
                         <p className="text-[12px] text-on-surface-variant">مدفوع: {(c.total_paid || 0).toLocaleString('ar-SA')}</p>
                       </td>
                       <td className="px-5 py-3.5 hidden md:table-cell">
                         <p className="text-sm text-on-surface">{c.total_invoices ?? '—'}</p>
                       </td>
                       <td className="px-5 py-3.5">
-                        <span className={cn('text-[12px] font-bold px-2 py-1 rounded-full', c.is_active ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' : 'bg-slate-50 text-slate-500 border border-slate-100')}>{c.is_active ? 'نشط' : 'معطّل'}</span>
+                        {c.is_active ? <Badge variant="in-stock">نشط</Badge> : <Badge variant="slate">معطّل</Badge>}
                       </td>
                       <td className="px-5 py-3.5 text-left">
                         <div className="flex items-center justify-end gap-1">
-                          <button onClick={() => openStatement(c)} title="كشف الحساب" className="p-2 rounded-xl text-on-surface-variant/40 hover:text-emerald-700 hover:bg-emerald-50 transition-all">
+                          <button onClick={() => openStatement(c)} title="كشف الحساب" className="p-2 rounded-xl text-on-surface-variant/40 hover:text-success hover:bg-success/10 transition-all">
                             <CreditCard size={15} />
                           </button>
-                          <button onClick={() => {/* TODO: show invoices view */}} title="فواتيره" className="p-2 rounded-xl text-on-surface-variant/40 hover:text-emerald-700 hover:bg-emerald-50 transition-all">
+                          <button onClick={() => {/* TODO: show invoices view */}} title="فواتيره" className="p-2 rounded-xl text-on-surface-variant/40 hover:text-success hover:bg-success/10 transition-all">
                             <FileText size={15} />
                           </button>
-                          <button onClick={() => openEdit(c)} title="تعديل" className="p-2 rounded-xl text-on-surface-variant/40 hover:text-emerald-700 hover:bg-emerald-50 transition-all">
+                          <button onClick={() => openEdit(c)} title="تعديل" className="p-2 rounded-xl text-on-surface-variant/40 hover:text-success hover:bg-success/10 transition-all">
                             <Edit2 size={15} />
                           </button>
-                          <button onClick={() => requestDelete(c.id)} title="تعطيل" className="p-2 rounded-xl text-error/80 hover:text-error hover:bg-red-50 transition-all">
+                          <button onClick={() => requestDelete(c.id)} title="تعطيل" className="p-2 rounded-xl text-error/80 hover:text-error hover:bg-error/10 transition-all">
                             <Trash2 size={15} />
                           </button>
                         </div>
@@ -302,9 +297,9 @@ export default function Customers() {
                   <input type="number" value={form.credit_limit} onChange={e => setForm({ ...form, credit_limit: Number(e.target.value) })} className="w-full border rounded-xl p-3 text-sm" />
                 </div>
               </div>
-              <div className="p-4 border-t border-surface-container-low flex items-center justify-end gap-2">
-                <button onClick={() => setIsModalOpen(false)} className="px-4 py-2 rounded-xl border">إلغاء</button>
-                <button onClick={handleSave} className="px-4 py-2 rounded-xl bg-emerald-600 text-white font-bold">حفظ</button>
+                <div className="p-4 border-t border-surface-container-low flex items-center justify-end gap-2">
+                <Button onClick={() => setIsModalOpen(false)} variant="secondary">إلغاء</Button>
+                <Button onClick={handleSave} variant="success">حفظ</Button>
               </div>
             </motion.div>
           </div>

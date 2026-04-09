@@ -13,6 +13,7 @@ import {
 import { motion, AnimatePresence } from 'motion/react';
 import { useToast } from './context/ToastContext';
 import { settingsApi } from './lib/api';
+import { Button } from './components/ui';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
@@ -319,16 +320,16 @@ export default function SettingsPage() {
                 <CheckCircle2 size={16} /> تم الحفظ بنجاح
               </motion.div>
             ) : (
-              <motion.button
+              <motion.div
                 key="save"
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
-                onClick={handleSave}
-                className="flex items-center gap-2 bg-gradient-to-r from-primary to-primary-container text-white px-5 py-2.5 rounded-xl font-bold text-sm hover:scale-[1.02] transition-transform shadow-lg shadow-primary/20 active:scale-95"
               >
-                <Save size={16} /> حفظ الإعدادات
-              </motion.button>
+                <Button onClick={handleSave} variant="primary" size="md" className="flex items-center gap-2">
+                  <Save size={16} /> حفظ الإعدادات
+                </Button>
+              </motion.div>
             )}
           </AnimatePresence>
         </div>
