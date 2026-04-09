@@ -11,6 +11,7 @@ import { twMerge } from 'tailwind-merge';
 import { InventoryItem, ItemStatus } from './types';
 import { useInventory, useCreateInventory, useUpdateInventory, useDeleteInventory } from './hooks/useApi';
 import { useToast } from './context/ToastContext';
+import { Button, Input, Badge, KPICard } from './components/ui';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -27,53 +28,29 @@ interface StatCardProps {
 }
 
 function StatCard({ label, value, sub, icon, color, onClick, active }: StatCardProps) {
-  const styles = {
-    primary: {
-      wrapper: 'stat-card-gradient-primary border-blue-200',
-      icon: 'bg-blue-100 text-blue-700',
-      value: 'text-blue-700',
-    },
-    green: {
-      wrapper: 'stat-card-gradient-green border-emerald-200',
-      icon: 'bg-emerald-100 text-emerald-700',
-      value: 'text-emerald-700',
-    },
-    orange: {
-      wrapper: 'stat-card-gradient-amber border-amber-200',
-      icon: 'bg-amber-100 text-amber-700',
-      value: 'text-amber-700',
-    },
-    red: {
-      wrapper: 'stat-card-gradient-red border-red-200',
-      icon: 'bg-red-100 text-red-600',
-      value: 'text-red-600',
-    },
+  const map: Record<string, any> = {
+    primary: 'blue',
+    green: 'emerald',
+    orange: 'amber',
+    red: 'red',
   };
-
-  const s = styles[color];
 
   return (
     <motion.div
       whileHover={onClick ? { scale: 1.02, y: -2 } : {}}
       whileTap={onClick ? { scale: 0.98 } : {}}
       onClick={onClick}
-      className={cn(
-        'rounded-2xl p-4 border transition-all',
-        s.wrapper,
-        onClick && 'cursor-pointer',
-        active && 'ring-2 ring-primary shadow-md'
-      )}
+      className={cn(onClick && 'cursor-pointer')}
     >
-      <div className="flex items-start justify-between gap-2">
-        <div className="min-w-0">
-          <p className="text-xs font-semibold text-on-surface-variant/80 mb-1 truncate">{label}</p>
-          <p className={cn('text-2xl font-extrabold leading-tight font-mono', s.value)}>{value}</p>
-          <p className="text-[11px] text-on-surface-variant/70 mt-1.5">{sub}</p>
-        </div>
-        <div className={cn('w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm', s.icon)}>
-          {icon}
-        </div>
-      </div>
+      <KPICard
+        title={label}
+        value={value}
+        subtitle={sub}
+        icon={icon}
+        gradient={map[color]}
+        onClick={onClick}
+        className={cn(active && 'ring-2 ring-primary shadow-md')}
+      />
     </motion.div>
   );
 }
@@ -221,20 +198,14 @@ export default function Inventory({ searchQuery, setSearchQuery }: InventoryProp
           <span className="mr-2 text-sm text-on-surface-variant">جاري التحميل...</span>
         </div>
       )}
-
-      {error && (
-        <div className="bg-error/10 border border-error/20 rounded-xl p-4 text-center">
-          <p className="text-error font-medium">{error}</p>
-          <button
-            onClick={refetch}
-            className="mt-2 px-4 py-2 bg-error text-white rounded-lg hover:bg-error/90 transition-colors"
-          >
-            إعادة المحاولة
-          </button>
-        </div>
-      )}
-
-      {!loading && !error && (
+              <div className="p-4 border-t border-surface-container-low flex gap-2">
+                <Button variant="primary" className="flex-1 justify-center py-2.5 text-sm" onClick={() => { setViewingItem(null); openEditModal(viewingItem); }}>
+                  <Edit2 size={15} /> تعديل
+                </Button>
+                <Button variant="outline" className="px-4 py-2.5 border-red-200 text-error font-bold text-sm" onClick={() => { setItemToDelete(viewingItem.id); setViewingItem(null); }}>
+                  <Trash2 size={15} />
+                </Button>
+              </div>
         <>
           {/* Mobile Search */}
           <div className="flex md:hidden relative">
@@ -244,7 +215,7 @@ export default function Inventory({ searchQuery, setSearchQuery }: InventoryProp
               placeholder="بحث في الأصناف..."
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              className="w-full bg-white border border-surface-container-high rounded-xl pr-9 pl-4 py-2.5 focus:ring-2 focus:ring-primary transition-all text-sm outline-none shadow-sm"
+              className="input-field pr-9"
             />
           </div>
 
@@ -293,21 +264,12 @@ export default function Inventory({ searchQuery, setSearchQuery }: InventoryProp
           <div className="relative">
             <button
               onClick={() => { setIsFilterOpen(!isFilterOpen); setIsSortOpen(false); }}
-              className={cn(
-                'px-4 py-2 rounded-xl text-sm font-medium flex items-center gap-2 border transition-all shadow-sm',
-                filterStatus !== 'all'
-                  ? 'bg-primary text-white border-primary shadow-md'
-                  : 'bg-white text-on-surface-variant border-surface-container-high hover:bg-surface-container-low'
-              )}
-            >
-              <Filter size={15} />
-              <span>{filterStatus === 'all' ? 'تصفية' : filterStatus === 'in-stock' ? 'متوفر' : filterStatus === 'low-stock' ? 'منخفض' : 'نفذ'}</span>
-              <ChevronDown size={13} className={cn('transition-transform', isFilterOpen && 'rotate-180')} />
-            </button>
-            <AnimatePresence>
-              {isFilterOpen && (
-                <motion.div
-                  initial={{ opacity: 0, y: -6, scale: 0.97 }}
+                  <div className="p-5 border-t border-surface-container-low flex-shrink-0 flex gap-3">
+                    <Button variant="outline" className="flex-1 py-3" onClick={() => setIsDrawerOpen(false)}>إلغاء</Button>
+                    <Button variant="primary" className="flex-1 py-3" onClick={handleSave} disabled={!formData.name || !formData.sku}>
+                      {editingId ? 'حفظ التعديلات' : 'إضافة الصنف'}
+                    </Button>
+                  </div>
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: -6, scale: 0.97 }}
                   className="absolute top-full mt-2 right-0 bg-white rounded-2xl shadow-xl border border-surface-container-high z-20 min-w-[180px] overflow-hidden py-1"
@@ -322,9 +284,9 @@ export default function Inventory({ searchQuery, setSearchQuery }: InventoryProp
                       )}
                     >
                       {status === 'all' && <><Layers size={14} /> الكل</>}
-                      {status === 'in-stock' && <><TrendingUp size={14} className="text-emerald-600" /> متوفر</>}
-                      {status === 'low-stock' && <><AlertTriangle size={14} className="text-amber-500" /> كمية منخفضة</>}
-                      {status === 'out-of-stock' && <><XCircle size={14} className="text-red-500" /> نفذ المخزون</>}
+                      {status === 'in-stock' && <><TrendingUp size={14} className="text-success" /> متوفر</>}
+                      {status === 'low-stock' && <><AlertTriangle size={14} className="text-warning" /> كمية منخفضة</>}
+                      {status === 'out-of-stock' && <><XCircle size={14} className="text-error" /> نفذ المخزون</>}
                     </button>
                   ))}
                 </motion.div>
@@ -373,35 +335,21 @@ export default function Inventory({ searchQuery, setSearchQuery }: InventoryProp
           </div>
 
           {(searchQuery || filterStatus !== 'all') && (
-            <button
-              onClick={() => { setSearchQuery(''); setFilterStatus('all'); }}
-              className="flex items-center gap-1.5 px-3 py-2 bg-red-50 text-red-600 border border-red-200 text-xs font-bold rounded-xl hover:bg-red-100 transition-colors"
-            >
+            <Button variant="outline" size="sm" className="text-error px-3 py-2" onClick={() => { setSearchQuery(''); setFilterStatus('all'); }}>
               <X size={12} />
               مسح
-            </button>
+            </Button>
           )}
         </div>
 
         <div className="flex items-center gap-2">
-          <button className="btn-secondary text-xs py-2 px-4">
+          <Button variant="secondary" size="sm" className="text-xs py-2 px-4">
             <Download size={15} />
             تصدير
-          </button>
-          <button
-            onClick={openAddModal}
-            className="btn-primary text-xs py-2 px-4 bg-primary hover:bg-primary-dark shadow-md hover:shadow-lg shadow-blue-500/20"
-          >
-            <Plus size={16} />
-            إضافة صنف
-          </button>
-        </div>
-      </div>
-
-      {/* Inventory Table */}
-      <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-surface-container-high">
-        <div className="overflow-x-auto">
-          <table className="w-full text-right">
+          </Button>
+                      <Button variant="outline" className="flex-1 py-3" onClick={() => setItemToDelete(null)}>إلغاء</Button>
+                      <Button variant="danger" className="flex-1 py-3" onClick={confirmDelete}>تأكيد الحذف</Button>
+                    </div>
             <thead>
               <tr className="bg-surface-container-low/80 border-b border-surface-container-high">
                 <th className="px-5 py-3.5 text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">الصنف</th>
@@ -452,7 +400,7 @@ export default function Inventory({ searchQuery, setSearchQuery }: InventoryProp
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: idx * 0.03 }}
-                    className="border-b border-surface-container-low last:border-0 hover:bg-blue-50/40 transition-colors group cursor-pointer"
+                    className="border-b border-surface-container-low last:border-0 hover:bg-surface-container-low/40 transition-colors group cursor-pointer"
                     onClick={() => setViewingItem(item)}
                   >
                     <td className="px-5 py-3.5">
@@ -474,7 +422,7 @@ export default function Inventory({ searchQuery, setSearchQuery }: InventoryProp
                     <td className="px-5 py-3.5 hidden sm:table-cell">
                       <span className={cn(
                         'text-sm font-bold font-mono',
-                        (item.quantity || 0) === 0 ? 'text-red-500' : (item.quantity || 0) <= 5 ? 'text-amber-600' : 'text-on-surface'
+                        (item.quantity || 0) === 0 ? 'text-error' : (item.quantity || 0) <= 5 ? 'text-warning' : 'text-on-surface'
                       )}>
                         {(item.quantity || 0).toLocaleString('ar-SA')}
                       </span>
@@ -488,17 +436,17 @@ export default function Inventory({ searchQuery, setSearchQuery }: InventoryProp
                     </td>
                     <td className="px-5 py-3.5">
                       {item.status === 'in-stock' && (
-                        <span className="badge-in-stock"><span className="w-1.5 h-1.5 bg-emerald-500 rounded-full" />متوفر</span>
+                        <Badge variant="in-stock"><span className="w-1.5 h-1.5 bg-success rounded-full" />متوفر</Badge>
                       )}
                       {item.status === 'low-stock' && (
-                        <span className="badge-low-stock"><span className="w-1.5 h-1.5 bg-amber-500 rounded-full" />منخفض</span>
+                        <Badge variant="low-stock"><span className="w-1.5 h-1.5 bg-warning rounded-full" />منخفض</Badge>
                       )}
                       {item.status === 'out-of-stock' && (
-                        <span className="badge-out-of-stock"><span className="w-1.5 h-1.5 bg-red-500 rounded-full" />نفذ</span>
+                        <Badge variant="out-of-stock"><span className="w-1.5 h-1.5 bg-error rounded-full" />نفذ</Badge>
                       )}
                     </td>
                     <td className="px-5 py-3.5 text-left">
-                      <div className="flex items-center justify-end gap-1.5">
+                        <div className="flex items-center justify-end gap-1.5">
                         <button
                           onClick={e => { e.stopPropagation(); openEditModal(item); }}
                           className="p-2 rounded-xl text-on-surface-variant/50 hover:text-primary hover:bg-primary-fixed/50 transition-all"

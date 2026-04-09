@@ -1,7 +1,7 @@
 import React from 'react';
 import clsx from 'clsx';
 
-export type BadgeVariant = 'in-stock' | 'low-stock' | 'out-of-stock' | 'emerald' | 'amber' | 'red' | 'slate';
+export type BadgeVariant = 'in-stock' | 'low-stock' | 'out-of-stock' | 'emerald' | 'amber' | 'red' | 'slate' | 'violet' | 'blue' | 'cyan';
 
 export interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
   variant?: BadgeVariant;
@@ -15,6 +15,9 @@ const mapVariant: Record<BadgeVariant, string> = {
   amber: 'badge-low-stock',
   red: 'badge-out-of-stock',
   slate: 'bg-slate-50 text-slate-600 border border-slate-100 text-[11px] font-bold px-2.5 py-1 rounded-full',
+  violet: 'bg-violet-100 text-violet-700 border border-violet-200 text-[11px] font-bold px-2.5 py-1 rounded-full',
+  blue: 'bg-blue-100 text-blue-700 border border-blue-200 text-[11px] font-bold px-2.5 py-1 rounded-full',
+  cyan: 'bg-cyan-100 text-cyan-700 border border-cyan-200 text-[11px] font-bold px-2.5 py-1 rounded-full',
 };
 
 export function Badge({ variant = 'emerald', className, children, ...rest }: BadgeProps) {

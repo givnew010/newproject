@@ -12,6 +12,7 @@ import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { SystemUser, UserRole, UserStatus } from './types';
 import { authToSystemUser } from './lib/user';
+import { Button, Input, Badge, KPICard } from './components/ui';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -162,19 +163,23 @@ function Avatar({ user, size = 'md' }: { user: SystemUser; size?: 'sm' | 'md' | 
 
 function StatusBadge({ status }: { status: UserStatus }) {
   const cfg = STATUS_CONFIG[status];
+  const variantMap: Record<UserStatus, any> = { active: 'in-stock', inactive: 'slate', suspended: 'red' };
   return (
-    <span className={cn('inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full border', cfg.badge)}>
+    <Badge variant={variantMap[status]}>
       {cfg.icon}{cfg.label}
-    </span>
+    </Badge>
   );
 }
 
 function RoleBadge({ role }: { role: UserRole }) {
   const cfg = ROLE_CONFIG[role];
+  const map: Record<UserRole, any> = {
+    admin: 'violet', manager: 'blue', accountant: 'emerald', warehouse: 'amber', sales: 'cyan', viewer: 'slate'
+  };
   return (
-    <span className={cn('inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full border', cfg.badge)}>
+    <Badge variant={map[role]}>
       {cfg.icon}{cfg.label}
-    </span>
+    </Badge>
   );
 }
 
@@ -324,7 +329,7 @@ export default function UsersPage() {
             initial={{ opacity: 0, y: -30 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -30 }}
-            className="fixed top-5 left-1/2 -translate-x-1/2 z-[100] bg-emerald-600 text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-2 text-sm font-bold"
+            className="fixed top-5 left-1/2 -translate-x-1/2 z-[100] bg-success text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-2 text-sm font-bold"
           >
             <CheckCircle2 size={16} />
             {successMsg}
@@ -334,53 +339,10 @@ export default function UsersPage() {
 
       {/* ─── Stats Cards ─── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        {/* Total */}
-        <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-2xl p-4 shadow-sm">
-          <div className="flex items-start justify-between mb-3">
-            <p className="text-xs font-semibold text-white/80">إجمالي المستخدمين</p>
-            <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center">
-              <Users size={18} className="text-white" />
-            </div>
-          </div>
-          <p className="text-3xl font-extrabold text-white">{totalUsers}</p>
-          <p className="text-xs text-white/70 mt-1">مستخدم مسجّل</p>
-        </div>
-
-        {/* Active */}
-        <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-2xl p-4 shadow-sm">
-          <div className="flex items-start justify-between mb-3">
-            <p className="text-xs font-semibold text-white/80">المستخدمون النشطون</p>
-            <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center">
-              <UserCheck size={18} className="text-white" />
-            </div>
-          </div>
-          <p className="text-3xl font-extrabold text-white">{activeCount}</p>
-          <p className="text-xs text-white/70 mt-1">{Math.round((activeCount / (totalUsers || 1)) * 100)}% من المجموع</p>
-        </div>
-
-        {/* Admins */}
-        <div className="bg-gradient-to-br from-violet-500 to-violet-600 rounded-2xl p-4 shadow-sm">
-          <div className="flex items-start justify-between mb-3">
-            <p className="text-xs font-semibold text-white/80">المديرون والإداريون</p>
-            <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center">
-              <Crown size={18} className="text-white" />
-            </div>
-          </div>
-          <p className="text-3xl font-extrabold text-white">{adminCount + users.filter(u => u.role === 'manager').length}</p>
-          <p className="text-xs text-white/70 mt-1">{adminCount} مدير نظام + {users.filter(u => u.role === 'manager').length} مدير</p>
-        </div>
-
-        {/* Inactive/Suspended */}
-        <div className="bg-gradient-to-br from-slate-500 to-slate-600 rounded-2xl p-4 shadow-sm">
-          <div className="flex items-start justify-between mb-3">
-            <p className="text-xs font-semibold text-white/80">غير نشط / موقوف</p>
-            <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center">
-              <UserMinus size={18} className="text-white" />
-            </div>
-          </div>
-          <p className="text-3xl font-extrabold text-white">{inactiveCount + suspendedCount}</p>
-          <p className="text-xs text-white/70 mt-1">{inactiveCount} غير نشط · {suspendedCount} موقوف</p>
-        </div>
+        <KPICard title="إجمالي المستخدمين" value={totalUsers} subtitle="مستخدم مسجّل" gradient="blue" icon={<Users size={18} />} />
+        <KPICard title="المستخدمون النشطون" value={activeCount} subtitle={`${Math.round((activeCount / (totalUsers || 1)) * 100)}% من المجموع`} gradient="emerald" icon={<UserCheck size={18} />} />
+        <KPICard title="المديرون والإداريون" value={adminCount + users.filter(u => u.role === 'manager').length} subtitle={`${adminCount} مدير نظام + ${users.filter(u => u.role === 'manager').length} مدير`} gradient="purple" icon={<Crown size={18} />} />
+        <KPICard title="غير نشط / موقوف" value={inactiveCount + suspendedCount} subtitle={`${inactiveCount} غير نشط · ${suspendedCount} موقوف`} gradient="red" icon={<UserMinus size={18} />} />
       </div>
 
       {/* ─── Toolbar ─── */}
@@ -394,7 +356,7 @@ export default function UsersPage() {
               placeholder="بحث بالاسم أو البريد أو القسم..."
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              className="w-full bg-white border border-surface-container-high rounded-xl pr-9 pl-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all shadow-sm"
+              className="input-field pr-9"
             />
             {searchQuery && (
               <button onClick={() => setSearchQuery('')} className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-error">
@@ -479,17 +441,14 @@ export default function UsersPage() {
 
         {/* Right Actions */}
         <div className="flex items-center gap-2 w-full sm:w-auto">
-          <button className="flex items-center gap-2 px-4 py-2.5 bg-white border border-surface-container-high rounded-xl text-sm font-medium text-on-surface-variant hover:bg-surface-container-low transition-all shadow-sm">
+          <Button variant="secondary" size="sm" className="text-xs py-2 px-4">
             <Download size={15} />
             تصدير
-          </button>
-          <button
-            onClick={openAdd}
-            className="flex items-center gap-2 bg-primary text-white px-5 py-2.5 rounded-xl font-bold text-sm hover:bg-primary-dark transition-all shadow-lg shadow-blue-500/20 active:scale-95"
-          >
+          </Button>
+          <Button variant="primary" size="sm" className="text-xs py-2 px-4" onClick={openAdd}>
             <Plus size={18} />
             إضافة مستخدم
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -539,7 +498,7 @@ export default function UsersPage() {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: idx * 0.04 }}
-                    className="border-b border-surface-container-low last:border-0 hover:bg-blue-50/30 transition-colors group cursor-pointer"
+                    className="border-b border-surface-container-low last:border-0 hover:bg-surface-container-low/30 transition-colors group cursor-pointer"
                     onClick={() => setViewingUser(user)}
                   >
                     {/* User Info */}
@@ -547,10 +506,10 @@ export default function UsersPage() {
                       <div className="flex items-center gap-3">
                         <div className="relative">
                           <Avatar user={user} size="md" />
-                          <span className={cn(
-                            'absolute -bottom-0.5 -left-0.5 w-3 h-3 rounded-full border-2 border-white',
-                            STATUS_CONFIG[user.status].dot
-                          )} />
+                            <span className={cn(
+                              'absolute -bottom-0.5 -left-0.5 w-3 h-3 rounded-full border-2 border-white',
+                              user.status === 'active' ? 'bg-success' : user.status === 'inactive' ? 'bg-slate-400' : 'bg-error'
+                            )} />
                         </div>
                         <div className="min-w-0">
                           <p className="text-sm font-bold text-on-surface truncate">{user.fullName}</p>
@@ -674,6 +633,7 @@ export default function UsersPage() {
         {ROLE_OPTIONS.map(role => {
           const count = users.filter(u => u.role === role).length;
           const cfg = ROLE_CONFIG[role];
+          const roleMap: Record<UserRole, any> = { admin: 'violet', manager: 'blue', accountant: 'emerald', warehouse: 'amber', sales: 'cyan', viewer: 'slate' };
           return (
             <motion.button
               key={role}
@@ -685,8 +645,10 @@ export default function UsersPage() {
                 filterRole === role ? 'ring-2 ring-primary border-primary shadow-md' : 'border-surface-container-high hover:border-primary/30'
               )}
             >
-              <div className={cn('w-9 h-9 rounded-xl flex items-center justify-center mb-2.5', cfg.badge.split(' ').slice(0, 2).join(' '))}>
-                {React.cloneElement(cfg.icon as React.ReactElement, { size: 16 })}
+              <div className="mb-2.5">
+                <Badge variant={roleMap[role]} className="px-2 py-2">
+                  {React.cloneElement(cfg.icon as React.ReactElement, { size: 16 })}
+                </Badge>
               </div>
               <p className="text-2xl font-extrabold text-on-surface">{count}</p>
               <p className="text-[11px] text-on-surface-variant font-medium mt-0.5">{cfg.label}</p>
@@ -933,18 +895,11 @@ export default function UsersPage() {
 
               {/* Modal Footer */}
               <div className="p-5 border-t border-surface-container-low flex gap-3 flex-shrink-0">
-                <button onClick={() => setIsModalOpen(false)}
-                  className="flex-1 py-3 rounded-xl font-bold text-sm border border-surface-container-high text-on-surface hover:bg-surface-container-low transition-colors">
-                  إلغاء
-                </button>
-                <button
-                  onClick={handleSave}
-                  disabled={!form.fullName || !form.email}
-                  className="flex-1 py-3 rounded-xl font-bold text-sm bg-primary text-white hover:bg-primary-dark transition-all shadow-lg shadow-primary/20 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                >
+                <Button variant="outline" className="flex-1 py-3" onClick={() => setIsModalOpen(false)}>إلغاء</Button>
+                <Button variant="primary" className="flex-1 py-3" onClick={handleSave} disabled={!form.fullName || !form.email}>
                   <CheckCircle2 size={16} />
                   {editingId ? 'حفظ التعديلات' : 'إضافة المستخدم'}
-                </button>
+                </Button>
               </div>
             </motion.div>
           </div>
@@ -972,16 +927,8 @@ export default function UsersPage() {
                 سيتم إرسال رابط إعادة تعيين كلمة المرور إلى بريد المستخدم الإلكتروني.
               </p>
               <div className="flex gap-3">
-                <button onClick={() => setShowPasswordReset(null)}
-                  className="flex-1 py-3 rounded-xl border border-surface-container-high text-on-surface font-bold text-sm hover:bg-surface-container-low transition-colors">
-                  إلغاء
-                </button>
-                <button
-                  onClick={() => { setShowPasswordReset(null); flash('تم إرسال رابط إعادة التعيين بنجاح'); }}
-                  className="flex-1 py-3 rounded-xl bg-amber-500 text-white font-bold text-sm hover:bg-amber-600 transition-colors shadow-lg shadow-amber-500/20"
-                >
-                  إرسال الرابط
-                </button>
+                <Button variant="outline" className="flex-1 py-3" onClick={() => setShowPasswordReset(null)}>إلغاء</Button>
+                <Button variant="primary" className="flex-1 py-3" onClick={() => { setShowPasswordReset(null); flash('تم إرسال رابط إعادة التعيين بنجاح'); }}>إرسال الرابط</Button>
               </div>
             </motion.div>
           </div>
@@ -1016,14 +963,8 @@ export default function UsersPage() {
                     </p>
                     <p className="text-xs text-on-surface-variant/70 mb-6">لا يمكن التراجع عن هذا الإجراء.</p>
                     <div className="flex gap-3">
-                      <button onClick={() => setDeleteId(null)}
-                        className="flex-1 py-3 rounded-xl border border-surface-container-high text-on-surface font-bold text-sm hover:bg-surface-container-low transition-colors">
-                        إلغاء
-                      </button>
-                      <button onClick={confirmDelete}
-                        className="flex-1 py-3 rounded-xl bg-red-600 text-white font-bold text-sm hover:bg-red-700 transition-colors shadow-lg shadow-red-500/20">
-                        تأكيد الحذف
-                      </button>
+                      <Button variant="outline" className="flex-1 py-3" onClick={() => setDeleteId(null)}>إلغاء</Button>
+                      <Button variant="danger" className="flex-1 py-3" onClick={confirmDelete}>تأكيد الحذف</Button>
                     </div>
                   </>
                 ) : null;
