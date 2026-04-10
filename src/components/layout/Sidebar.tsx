@@ -62,7 +62,10 @@ export default function Sidebar({ currentPage, navigateTo, isOpen, onClose, outO
   const outCount = outOfStockCount || 0;
 
   return (
-    <aside className={cn('fixed inset-y-0 right-0 z-50 w-64 flex flex-col transition-transform duration-300', isOpen ? 'translate-x-0' : 'translate-x-full')}>
+    <aside
+      className={cn('fixed inset-y-0 right-0 z-50 w-64 flex flex-col transition-transform duration-300 text-white', isOpen ? 'translate-x-0' : 'translate-x-full')}
+      style={{ background: 'var(--gradient-sidebar)' }}
+    >
       <div className="p-5 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-white/15 rounded-xl flex items-center justify-center backdrop-blur-sm border border-white/20">

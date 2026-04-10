@@ -206,7 +206,7 @@ export default function Inventory({ searchQuery, setSearchQuery }: InventoryProp
                   <Trash2 size={15} />
                 </Button>
               </div>
-        <>
+        
           {/* Mobile Search */}
           <div className="flex md:hidden relative">
             <Search size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant/60" />
@@ -264,12 +264,16 @@ export default function Inventory({ searchQuery, setSearchQuery }: InventoryProp
           <div className="relative">
             <button
               onClick={() => { setIsFilterOpen(!isFilterOpen); setIsSortOpen(false); }}
-                  <div className="p-5 border-t border-surface-container-low flex-shrink-0 flex gap-3">
-                    <Button variant="outline" className="flex-1 py-3" onClick={() => setIsDrawerOpen(false)}>إلغاء</Button>
-                    <Button variant="primary" className="flex-1 py-3" onClick={handleSave} disabled={!formData.name || !formData.sku}>
-                      {editingId ? 'حفظ التعديلات' : 'إضافة الصنف'}
-                    </Button>
-                  </div>
+              className="bg-white px-4 py-2 rounded-xl text-sm font-medium text-on-surface-variant flex items-center gap-2 border border-surface-container-high hover:bg-surface-container-low transition-all shadow-sm"
+            >
+              <Filter size={15} />
+              <span>تصفية</span>
+              <ChevronDown size={13} className={cn('transition-transform', isFilterOpen && 'rotate-180')} />
+            </button>
+            <AnimatePresence>
+              {isFilterOpen && (
+                <motion.div
+                  initial={{ opacity: 0, y: -6, scale: 0.97 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: -6, scale: 0.97 }}
                   className="absolute top-full mt-2 right-0 bg-white rounded-2xl shadow-xl border border-surface-container-high z-20 min-w-[180px] overflow-hidden py-1"
@@ -350,7 +354,9 @@ export default function Inventory({ searchQuery, setSearchQuery }: InventoryProp
                       <Button variant="outline" className="flex-1 py-3" onClick={() => setItemToDelete(null)}>إلغاء</Button>
                       <Button variant="danger" className="flex-1 py-3" onClick={confirmDelete}>تأكيد الحذف</Button>
                     </div>
-            <thead>
+                    <div className="overflow-auto">
+                      <table className="w-full">
+                        <thead>
               <tr className="bg-surface-container-low/80 border-b border-surface-container-high">
                 <th className="px-5 py-3.5 text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">الصنف</th>
                 <th className="px-5 py-3.5 text-[11px] font-bold text-on-surface-variant uppercase tracking-wider hidden md:table-cell">الرمز (SKU)</th>
@@ -730,8 +736,6 @@ export default function Inventory({ searchQuery, setSearchQuery }: InventoryProp
           </div>
         )}
       </AnimatePresence>
-        </>
-      )}
     </div>
   );
 }

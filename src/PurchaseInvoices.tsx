@@ -204,7 +204,7 @@ export default function PurchaseInvoices({}: Props) {
 
   // Calculate stats
   const totalInvoices = invoices.length;
-  const totalCost = invoices.reduce((sum, inv) => sum + inv.total, 0);
+  const totalCost = invoices.reduce((sum, inv) => sum + (inv.totalAmount ?? 0), 0);
   const avgInvoice = totalInvoices > 0 ? totalCost / totalInvoices : 0;
 
   return (
@@ -221,14 +221,14 @@ export default function PurchaseInvoices({}: Props) {
         />
         <KPICard
           title="إجمالي التكاليف"
-          value={`${totalCost.toLocaleString('ar-SA')} ر.س`}
+          value={`${Number(totalCost || 0).toLocaleString('ar-SA')} ر.س`}
           subtitle="ريال سعودي"
           icon={<TrendingDown size={18} />}
           gradient="blue"
         />
         <KPICard
           title="متوسط قيمة الفاتورة"
-          value={`${avgInvoice.toLocaleString('ar-SA')} ر.س`}
+          value={`${Number(avgInvoice || 0).toLocaleString('ar-SA')} ر.س`}
           subtitle="ريال سعودي"
           icon={<ShoppingCart size={18} />}
           gradient="emerald"
@@ -314,11 +314,11 @@ export default function PurchaseInvoices({}: Props) {
                     </td>
                     <td className="px-5 py-3.5 hidden md:table-cell">
                       <span className="inline-flex items-center gap-1 bg-surface-container-low text-on-surface-variant text-xs font-bold px-2.5 py-1 rounded-full">
-                        <Package size={11} />{inv.items.length} صنف
+                        <Package size={11} />{(inv.items?.length ?? 0)} صنف
                       </span>
                     </td>
                     <td className="px-5 py-3.5">
-                      <span className="text-sm font-extrabold text-violet-700 font-mono">{inv.totalAmount.toLocaleString('ar-SA')}</span>
+                      <span className="text-sm font-extrabold text-violet-700 font-mono">{Number(inv.totalAmount ?? 0).toLocaleString('ar-SA')}</span>
                       <span className="text-xs text-on-surface-variant mr-1">ر.س</span>
                     </td>
                     <td className="px-5 py-3.5 text-left">
@@ -565,7 +565,7 @@ export default function PurchaseInvoices({}: Props) {
                   </div>
                   <div className="bg-surface-container-low rounded-xl p-3">
                     <p className="text-[11px] text-on-surface-variant font-medium mb-1">الإجمالي</p>
-                    <p className="text-sm font-extrabold text-violet-700 font-mono">{viewingInvoice.totalAmount.toLocaleString('ar-SA')} ر.س</p>
+                    <p className="text-sm font-extrabold text-violet-700 font-mono">{Number(viewingInvoice.totalAmount ?? 0).toLocaleString('ar-SA')} ر.س</p>
                   </div>
                 </div>
                 {viewingInvoice.notes && (
@@ -574,15 +574,15 @@ export default function PurchaseInvoices({}: Props) {
                   </div>
                 )}
                 <div>
-                  <h4 className="text-sm font-extrabold text-on-surface mb-3">الأصناف ({viewingInvoice.items.length})</h4>
+                  <h4 className="text-sm font-extrabold text-on-surface mb-3">الأصناف ({(viewingInvoice.items?.length ?? 0)})</h4>
                   <div className="space-y-2">
                     {viewingInvoice.items.map(item => (
                       <div key={item.id} className="flex items-center justify-between py-2.5 px-3 bg-surface-container-low rounded-xl">
                         <div>
                           <p className="text-sm font-bold text-on-surface">{item.name}</p>
-                          <p className="text-xs text-on-surface-variant">{item.quantity} × {item.price.toLocaleString('ar-SA')} ر.س</p>
+                          <p className="text-xs text-on-surface-variant">{item.quantity} × {Number(item.price ?? 0).toLocaleString('ar-SA')} ر.س</p>
                         </div>
-                        <p className="text-sm font-extrabold text-violet-700 font-mono">{item.total.toLocaleString('ar-SA')} ر.س</p>
+                        <p className="text-sm font-extrabold text-violet-700 font-mono">{Number(item.total ?? 0).toLocaleString('ar-SA')} ر.س</p>
                       </div>
                     ))}
                   </div>

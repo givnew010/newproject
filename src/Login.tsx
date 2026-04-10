@@ -47,8 +47,23 @@ export default function Login() {
 
         {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-6">
-          <Input placeholder="أدخل اسم المستخدم" value={username} onChange={(e) => setUsername(e.target.value)} disabled={loading} />
-          <Input placeholder="أدخل كلمة المرور" type="password" value={password} onChange={(e) => setPassword(e.target.value)} disabled={loading} />
+          <Input
+            placeholder="أدخل اسم المستخدم"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            disabled={loading}
+            dir="rtl"
+            className="text-right"
+          />
+          <Input
+            placeholder="أدخل كلمة المرور"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            disabled={loading}
+            dir="rtl"
+            className="text-right"
+          />
 
           {/* Error Message */}
           {error && (
@@ -63,7 +78,7 @@ export default function Login() {
           )}
 
           {/* Submit Button */}
-          <Button type="submit" variant="primary" className="w-full py-3" disabled={loading}>
+          <Button type="submit" variant="primary" className="w-full py-3 justify-center" disabled={loading}>
             {loading ? (
               <div className="flex items-center justify-center">
                 <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
