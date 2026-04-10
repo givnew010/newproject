@@ -161,12 +161,12 @@ export default function Inventory({ searchQuery, setSearchQuery }: InventoryProp
 
   return (
     <div className="flex flex-col gap-5 p-4 lg:p-6">
-      <PageHeader
+      {/* <PageHeader
         title="إدارة المخزون"
         subtitle="تتبع وإدارة جميع أصناف المخزون"
         icon={<Package size={20} className="text-primary" />}
         accentColor="blue"
-      />
+      /> */}
 
       {loading && (
         <div className="flex items-center justify-center py-10">
@@ -183,7 +183,7 @@ export default function Inventory({ searchQuery, setSearchQuery }: InventoryProp
 
       {!loading && (
         <>
-          <InventoryStatsRow
+          {/* <InventoryStatsRow
             total={stats.total}
             totalValue={stats.totalValue}
             inStock={stats.inStock}
@@ -191,7 +191,7 @@ export default function Inventory({ searchQuery, setSearchQuery }: InventoryProp
             outOfStock={stats.outOfStock}
             filterStatus={filterStatus}
             onFilterChange={setFilterStatus}
-          />
+          /> */}
 
           <div className="flex md:hidden relative">
             <Search size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant/60" />

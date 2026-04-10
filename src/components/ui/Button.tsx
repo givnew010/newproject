@@ -15,7 +15,7 @@ const variantClass: Record<ButtonVariant, string> = {
   secondary: 'btn-secondary',
   ghost: 'bg-transparent hover:bg-surface-container-low text-on-surface-variant',
   danger: 'bg-error text-white px-4 py-2 rounded-xl',
-  success: 'bg-success text-white hover:bg-[color:var(--color-success-dark)] shadow-sm',
+  success: 'btn-success',
   outline: 'bg-white border border-surface-container-high text-on-surface-variant',
 };
 

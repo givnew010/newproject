@@ -121,7 +121,10 @@ export default function Customers() {
         </div>
         <div className="flex items-center gap-2">
           <Button variant="secondary" onClick={() => refetch()}>تحديث</Button>
-          <Button variant="success" onClick={openAdd}><Plus size={18} />إضافة عميل</Button>
+          <Button variant="success" onClick={openAdd} className="flex items-center">
+            <Plus size={18} style={{ marginInlineEnd: 8 }} />
+            <span>إضافة عميل</span>
+          </Button>
         </div>
       </div>
 

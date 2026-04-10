@@ -32,6 +32,7 @@
   --color-on-error-container: #991b1b;
 
   --color-success: #16a34a;
+  --color-success-dark: #15803d;
   --color-success-container: #dcfce7;
   --color-warning: #d97706;
   --color-warning-container: #fef3c7;
@@ -94,6 +95,12 @@
   .btn-primary {
     @apply bg-primary text-white px-5 py-2.5 rounded-xl font-bold text-sm
            hover:bg-primary-dark transition-all shadow-sm hover:shadow-md
+           active:scale-95 flex items-center gap-2;
+  }
+
+  .btn-success {
+    @apply bg-success text-white px-5 py-2.5 rounded-xl font-bold text-sm
+           hover:bg-[color:var(--color-success-dark)] transition-all shadow-sm hover:shadow-md
            active:scale-95 flex items-center gap-2;
   }
 
