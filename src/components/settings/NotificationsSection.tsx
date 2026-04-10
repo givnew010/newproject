@@ -1,0 +1,95 @@
+import React from 'react';
+import { Bell, Check } from 'lucide-react';
+import { Button } from '../ui';
+
+interface NotificationsSectionProps {
+  settings: {
+    emailNotifications: boolean;
+    stockAlerts: boolean;
+    invoiceReminders: boolean;
+    smsNotifications: boolean;
+    notificationEmail: string;
+    notificationPhone: string;
+  };
+  onChange: (key: string, val: string | boolean) => void;
+  onSave: () => void;
+  isSaving?: boolean;
+  savedMessage?: string;
+}
+
+function Toggle({ label, sub, checked, onChange }: { label: string; sub?: string; checked: boolean; onChange: (v: boolean) => void }) {
+  return (
+    <label className="flex items-center justify-between p-3.5 rounded-xl hover:bg-surface-container-low/50 cursor-pointer transition-colors">
+      <div>
+        <p className="text-sm font-bold text-on-surface">{label}</p>
+        {sub && <p className="text-[11px] text-on-surface-variant">{sub}</p>}
+      </div>
+      <button
+        onClick={() => onChange(!checked)}
+        className={`w-11 h-6 rounded-full transition-all flex items-center px-0.5 ${checked ? 'bg-primary' : 'bg-surface-container-high'}`}
+      >
+        <span className={`w-5 h-5 bg-white rounded-full shadow-sm transition-transform ${checked ? '-translate-x-5' : 'translate-x-0'}`} />
+      </button>
+    </label>
+  );
+}
+
+export function NotificationsSection({ settings, onChange, onSave, isSaving, savedMessage }: NotificationsSectionProps) {
+  return (
+    <div className="bg-white rounded-2xl border border-surface-container-high shadow-sm p-5 space-y-5">
+      <div className="flex items-center gap-3 pb-3 border-b border-surface-container-low">
+        <div className="w-9 h-9 bg-amber-100 rounded-xl flex items-center justify-center text-amber-600">
+          <Bell size={18} />
+        </div>
+        <div>
+          <h3 className="font-extrabold text-on-surface">الإشعارات</h3>
+          <p className="text-[11px] text-on-surface-variant">إدارة قنوات التنبيه والتذكير</p>
+        </div>
+      </div>
+
+      <div className="divide-y divide-surface-container-low border border-surface-container-high rounded-xl overflow-hidden">
+        <Toggle label="إشعارات البريد الإلكتروني" sub="استقبال التنبيهات عبر البريد" checked={settings.emailNotifications} onChange={v => onChange('emailNotifications', v)} />
+        <Toggle label="تنبيهات المخزون" sub="إشعار عند نقص الكميات" checked={settings.stockAlerts} onChange={v => onChange('stockAlerts', v)} />
+        <Toggle label="تذكير الفواتير" sub="تذكير بالفواتير غير المدفوعة" checked={settings.invoiceReminders} onChange={v => onChange('invoiceReminders', v)} />
+        <Toggle label="إشعارات SMS" sub="رسائل نصية قصيرة" checked={settings.smsNotifications} onChange={v => onChange('smsNotifications', v)} />
+      </div>
+
+      {settings.emailNotifications && (
+        <div className="space-y-1.5">
+          <label className="text-xs font-bold text-on-surface-variant block">بريد الإشعارات</label>
+          <input
+            type="email"
+            value={settings.notificationEmail}
+            onChange={e => onChange('notificationEmail', e.target.value)}
+            placeholder="alerts@company.com"
+            className="w-full border border-surface-container-high rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-primary transition-all"
+            dir="ltr"
+          />
+        </div>
+      )}
+
+      {settings.smsNotifications && (
+        <div className="space-y-1.5">
+          <label className="text-xs font-bold text-on-surface-variant block">هاتف الإشعارات</label>
+          <input
+            value={settings.notificationPhone}
+            onChange={e => onChange('notificationPhone', e.target.value)}
+            placeholder="05XXXXXXXX"
+            className="w-full border border-surface-container-high rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-primary transition-all"
+          />
+        </div>
+      )}
+
+      <div className="flex items-center gap-3 pt-2 border-t border-surface-container-low">
+        <Button variant="primary" onClick={onSave} disabled={isSaving}>
+          {isSaving ? 'جارٍ الحفظ...' : 'حفظ الإعدادات'}
+        </Button>
+        {savedMessage && (
+          <span className="flex items-center gap-1.5 text-xs text-success font-bold"><Check size={14} />{savedMessage}</span>
+        )}
+      </div>
+    </div>
+  );
+}
+
+export default NotificationsSection;
