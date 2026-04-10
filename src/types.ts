@@ -8,9 +8,11 @@ export interface InventoryItem {
   quantity: number;
   cost_price: number;
   selling_price: number;
+  price?: number;
   barcode: string;
   status: ItemStatus;
   notes?: string;
+  warehouse_id?: number;
 }
 
 export interface Stat {
