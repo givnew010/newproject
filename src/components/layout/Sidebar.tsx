@@ -10,8 +10,10 @@ import {
   Truck,
   Users,
   Settings,
+  LogOut,
   X,
 } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
 import { motion } from 'motion/react';
 import { twMerge } from 'tailwind-merge';
 
@@ -58,6 +60,7 @@ function NavItem({ icon, label, active, onClick, badge }: { icon: React.ReactNod
 }
 
 export default function Sidebar({ currentPage, navigateTo, isOpen, onClose, outOfStockCount = 0 }: SidebarProps) {
+  const { logout } = useAuth();
   const lowStockCount = 0;
   const outCount = outOfStockCount || 0;
 
@@ -113,7 +116,7 @@ export default function Sidebar({ currentPage, navigateTo, isOpen, onClose, outO
       </nav>
 
       <div className="p-3 border-t border-white/10">
-        <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/10 transition-colors cursor-pointer">
+        <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/10 transition-colors">
           <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
             <span className="text-white font-bold text-sm">م</span>
           </div>
@@ -121,6 +124,14 @@ export default function Sidebar({ currentPage, navigateTo, isOpen, onClose, outO
             <p className="text-xs font-bold text-white truncate">مدير النظام</p>
             <p className="text-[10px] text-blue-300 truncate">admin@almunassiq.com</p>
           </div>
+          <button
+            onClick={() => { logout(); }}
+            aria-label="تسجيل الخروج"
+            className="flex items-center gap-2 btn-secondary text-sm px-3 py-2.5 rounded-xl"
+          >
+            <LogOut size={16} />
+            خروج
+          </button>
         </div>
       </div>
     </aside>
