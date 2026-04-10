@@ -26,12 +26,13 @@ interface FormFieldProps {
   label: string;
   required?: boolean;
   children: React.ReactNode;
-  colSpan?: boolean; // span full width on sm+ (3 cols)
+  // pass a static Tailwind span class like "sm:col-span-2" or "sm:col-span-4"
+  colSpanClass?: string;
 }
 
-function FormField({ label, required, children, colSpan }: FormFieldProps) {
+function FormField({ label, required, children, colSpanClass }: FormFieldProps) {
   return (
-    <div className={cn('space-y-1.5', colSpan && 'sm:col-span-3')}>
+    <div className={cn('space-y-1.5', colSpanClass)}>
       <label className="text-xs font-bold text-on-surface-variant">
         {label}
         {required && <span className="text-error mr-0.5">*</span>}
@@ -73,7 +74,7 @@ export function ItemFormModal({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 10 }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="relative z-[70] w-full max-w-lg bg-white shadow-2xl rounded-3xl overflow-hidden flex flex-col max-h-[92vh]"
+            className="relative z-[70] w-full max-w-2xl bg-white shadow-2xl rounded-3xl overflow-hidden flex flex-col max-h-[92vh]"
           >
             <div className="px-6 py-5 border-b border-surface-container-low bg-gradient-to-l from-primary-fixed/50 to-white flex items-center justify-between flex-shrink-0">
               <div>
@@ -93,100 +94,112 @@ export function ItemFormModal({
             </div>
 
             <div className="flex-1 overflow-y-auto p-6 space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <FormField label="اسم الصنف" required>
-                  <Input
-                    type="text"
-                    placeholder="أدخل اسم الصنف"
-                    value={formData.name || ''}
-                    onChange={(e) => set('name', e.target.value)}
-                  />
-                </FormField>
+              <div className="space-y-4">
+                {/* Row 1: name (2 cols) | SKU | Barcode */}
+                <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+                  <FormField label="اسم الصنف" required colSpanClass="sm:col-span-2">
+                    <Input
+                      type="text"
+                      placeholder="أدخل اسم الصنف"
+                      value={formData.name || ''}
+                      onChange={(e) => set('name', e.target.value)}
+                    />
+                  </FormField>
 
-                <FormField label="الرمز (SKU)" required>
-                  <Input
-                    type="text"
-                    placeholder="مثال: PROD-001"
-                    value={formData.sku || ''}
-                    onChange={(e) => set('sku', e.target.value)}
-                    className="font-mono"
-                  />
-                </FormField>
+                  <FormField label="الرمز (SKU)" required>
+                    <Input
+                      type="text"
+                      placeholder="مثال: PROD-001"
+                      value={formData.sku || ''}
+                      onChange={(e) => set('sku', e.target.value)}
+                      className="font-mono"
+                    />
+                  </FormField>
 
-                <FormField label="الباركود">
-                  <Input
-                    type="text"
-                    placeholder="أدخل رقم الباركود"
-                    value={formData.barcode || ''}
-                    onChange={(e) => set('barcode', e.target.value)}
-                    className="font-mono"
-                  />
-                </FormField>
+                  <FormField label="الباركود">
+                    <Input
+                      type="text"
+                      placeholder="أدخل رقم الباركود"
+                      value={formData.barcode || ''}
+                      onChange={(e) => set('barcode', e.target.value)}
+                      className="font-mono"
+                    />
+                  </FormField>
+                </div>
 
-                <FormField label="تاريخ انتهاء الصنف">
-                  <Input
-                    type="date"
-                    value={formData.expiry_date || ''}
-                    onChange={(e) => set('expiry_date', e.target.value)}
-                  />
-                </FormField>
+                {/* Row 2: expiry, unit, category (equal widths) */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <FormField label="تاريخ انتهاء الصنف">
+                    <Input
+                      type="date"
+                      value={formData.expiry_date || ''}
+                      onChange={(e) => set('expiry_date', e.target.value)}
+                    />
+                  </FormField>
 
-                <FormField label="وحدة الصنف">
-                  <Input
-                    type="text"
-                    placeholder="مثال: pcs"
-                    value={formData.unit || ''}
-                    onChange={(e) => set('unit', e.target.value)}
-                  />
-                </FormField>
+                  <FormField label="وحدة الصنف">
+                    <Input
+                      type="text"
+                      placeholder="مثال: pcs"
+                      value={formData.unit || ''}
+                      onChange={(e) => set('unit', e.target.value)}
+                    />
+                  </FormField>
 
-                <FormField label="التصنيف">
-                  <Input
-                    type="text"
-                    placeholder="مثال: إلكترونيات"
-                    value={formData.category || ''}
-                    onChange={(e) => set('category', e.target.value)}
-                  />
-                </FormField>
+                  <FormField label="التصنيف">
+                    <Input
+                      type="text"
+                      placeholder="مثال: إلكترونيات"
+                      value={formData.category || ''}
+                      onChange={(e) => set('category', e.target.value)}
+                    />
+                  </FormField>
+                </div>
 
-                <FormField label="الكمية">
-                  <Input
-                    type="number"
-                    min={0}
-                    value={formData.quantity ?? 0}
-                    onChange={(e) => set('quantity', Number(e.target.value))}
-                  />
-                </FormField>
+                {/* Row 3: quantity, cost_price, selling_price (equal widths) */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <FormField label="الكمية">
+                    <Input
+                      type="number"
+                      min={0}
+                      value={formData.quantity ?? 0}
+                      onChange={(e) => set('quantity', Number(e.target.value))}
+                    />
+                  </FormField>
 
-                <FormField label="سعر الشراء (ر.س)">
-                  <Input
-                    type="number"
-                    min={0}
-                    step={0.01}
-                    value={formData.cost_price ?? 0}
-                    onChange={(e) => set('cost_price', Number(e.target.value))}
-                  />
-                </FormField>
+                  <FormField label="سعر الشراء (ر.س)">
+                    <Input
+                      type="number"
+                      min={0}
+                      step={0.01}
+                      value={formData.cost_price ?? 0}
+                      onChange={(e) => set('cost_price', Number(e.target.value))}
+                    />
+                  </FormField>
 
-                <FormField label="سعر البيع (ر.س)">
-                  <Input
-                    type="number"
-                    min={0}
-                    step={0.01}
-                    value={formData.selling_price ?? 0}
-                    onChange={(e) => set('selling_price', Number(e.target.value))}
-                  />
-                </FormField>
+                  <FormField label="سعر البيع (ر.س)">
+                    <Input
+                      type="number"
+                      min={0}
+                      step={0.01}
+                      value={formData.selling_price ?? 0}
+                      onChange={(e) => set('selling_price', Number(e.target.value))}
+                    />
+                  </FormField>
+                </div>
 
-                <FormField label="ملاحظات" colSpan>
-                  <textarea
-                    rows={3}
-                    placeholder="أي ملاحظات إضافية..."
-                    value={formData.notes || ''}
-                    onChange={(e) => set('notes', e.target.value)}
-                    className="input-field resize-none w-full"
-                  />
-                </FormField>
+                {/* Notes (full width) */}
+                <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+                  <FormField label="ملاحظات" colSpanClass="sm:col-span-4">
+                    <textarea
+                      rows={3}
+                      placeholder="أي ملاحظات إضافية..."
+                      value={formData.notes || ''}
+                      onChange={(e) => set('notes', e.target.value)}
+                      className="input-field resize-none w-full"
+                    />
+                  </FormField>
+                </div>
               </div>
             </div>
 
