@@ -84,7 +84,7 @@ export default function Inventory({ searchQuery, setSearchQuery }: InventoryProp
 
   const openAdd = () => {
     setEditingId(null);
-    setFormData({ quantity: 0, selling_price: 0 });
+    setFormData({ quantity: 0, selling_price: 0, cost_price: 0, unit: '', expiry_date: '' });
     setFormOpen(true);
   };
 
@@ -110,7 +110,7 @@ export default function Inventory({ searchQuery, setSearchQuery }: InventoryProp
       unit: 'pcs',
       quantity: Number(formData.quantity) || 0,
       min_quantity: 0,
-      cost_price: Number(formData.selling_price) || 0,
+      cost_price: Number(formData.cost_price) || 0,
       selling_price: Number(formData.selling_price) || 0,
       barcode: formData.barcode || '',
       notes: formData.notes || '',

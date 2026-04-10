@@ -10,6 +10,8 @@ export interface InventoryItem {
   selling_price: number;
   price?: number;
   barcode: string;
+  unit?: string;
+  expiry_date?: string;
   status: ItemStatus;
   notes?: string;
   warehouse_id?: number;
