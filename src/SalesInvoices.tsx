@@ -4,7 +4,7 @@ import { SalesInvoice, InvoiceLineItem } from './types';
 import { useSales, useCreateSale, useUpdateSale, useDeleteSale, useCreateSalePayment, useCustomers, useInventory } from './hooks/useApi';
 import { useToast } from './context/ToastContext';
 import { KPICard, Button } from './components/ui';
-import { InvoiceStatsRow } from './components/shared/InvoiceStatsRow';
+// import { InvoiceStatsRow } from './components/shared/InvoiceStatsRow';
 import { InvoiceTable } from './components/shared/InvoiceTable';
 import { InvoiceFormModal } from './components/shared/InvoiceFormModal';
 import type { InvoiceFormState } from './components/shared/InvoiceFormModal';
@@ -54,8 +54,8 @@ export default function SalesInvoices() {
     );
   }, [invoices, search]);
 
-  const totalRevenue = invoices.reduce((s: number, inv: SalesInvoice) => s + (inv.totalAmount ?? 0), 0);
-  const avgInvoice = invoices.length > 0 ? Math.round(totalRevenue / invoices.length) : 0;
+  // const totalRevenue = invoices.reduce((s: number, inv: SalesInvoice) => s + (inv.totalAmount ?? 0), 0);
+  // const avgInvoice = invoices.length > 0 ? Math.round(totalRevenue / invoices.length) : 0;
 
   const openAdd = () => {
     setEditingId(null);
@@ -161,7 +161,7 @@ export default function SalesInvoices() {
       </div>
 
       {/* Stats */}
-      <InvoiceStatsRow mode="sale" count={invoices.length} total={totalRevenue} avg={avgInvoice} />
+      {/* <InvoiceStatsRow mode="sale" count={invoices.length} total={totalRevenue} avg={avgInvoice} /> */}
 
       {/* Table */}
       <InvoiceTable

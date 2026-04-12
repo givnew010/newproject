@@ -1,16 +1,11 @@
 import React from 'react';
-import { Search, Bell, Settings, Menu, X } from 'lucide-react';
-import { twMerge } from 'tailwind-merge';
+import { Bell, Settings } from 'lucide-react';
 
 type Page = 'dashboard' | 'inventory' | 'purchases' | 'sales' | 'reports' | 'warehouses' | 'customers' | 'suppliers' | 'users' | 'settings';
 
 interface HeaderProps {
   currentPage: Page;
   pageTitle: string;
-  isSidebarOpen: boolean;
-  toggleSidebar: () => void;
-  searchQuery?: string;
-  setSearchQuery?: (v: string) => void;
   alertsCount?: number;
   navigateTo?: (p: Page) => void;
 }
@@ -26,27 +21,16 @@ function IconButton({ icon, onClick, badge }: { icon: React.ReactNode; onClick?:
   );
 }
 
-export default function Header({ currentPage, pageTitle, isSidebarOpen, toggleSidebar, searchQuery, setSearchQuery, alertsCount = 0, navigateTo }: HeaderProps) {
+export default function Header({ currentPage, pageTitle, alertsCount = 0, navigateTo }: HeaderProps) {
   return (
     <header className="sticky top-0 z-30 glass-panel border-b border-surface-container-high px-4 lg:px-6 py-3 flex items-center justify-between gap-4">
       <div className="flex items-center gap-3 min-w-0">
-        <button onClick={toggleSidebar} className="p-2 hover:bg-surface-container-low rounded-xl transition-colors flex-shrink-0">
-          {isSidebarOpen ? <X size={22} className="text-on-surface-variant" /> : <Menu size={22} className="text-on-surface-variant" />}
-        </button>
-
+        {/* sidebar toggle moved into Sidebar component */}
         <div className="min-w-0">
           <h2 className="font-headline font-extrabold text-on-surface text-lg lg:text-xl leading-tight">{pageTitle}</h2>
         </div>
 
-        {currentPage === 'inventory' && (
-          <div className="hidden md:flex relative ms-2">
-            <Search size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant/60" />
-            <input type="text" placeholder="بحث في الأصناف..." value={searchQuery} onChange={e => setSearchQuery?.(e.target.value)} className="bg-surface-container-low border border-surface-container-high rounded-xl pr-9 pl-10 py-2 w-64 focus:ring-2 focus:ring-primary focus:border-primary transition-all text-sm outline-none" />
-            {searchQuery && (
-              <button onClick={() => setSearchQuery?.('')} className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-error transition-colors">✕</button>
-            )}
-          </div>
-        )}
+        {/* search removed */}
       </div>
 
       <div className="flex items-center gap-1 flex-shrink-0">

@@ -18,7 +18,6 @@ export type SortKey = 'name' | 'quantity' | 'selling_price';
 export type SortOrder = 'asc' | 'desc';
 
 interface InventoryToolbarProps {
-  searchQuery: string;
   filterStatus: 'all' | ItemStatus;
   sortBy: SortKey;
   sortOrder: SortOrder;
@@ -59,7 +58,6 @@ function DropdownMenu({ isOpen, children }: { isOpen: boolean; children: React.R
 }
 
 export function InventoryToolbar({
-  searchQuery,
   filterStatus,
   sortBy,
   sortOrder,
@@ -71,7 +69,7 @@ export function InventoryToolbar({
   const [isFilterOpen, setIsFilterOpen] = React.useState(false);
   const [isSortOpen, setIsSortOpen] = React.useState(false);
 
-  const hasActiveFilters = searchQuery.trim() !== '' || filterStatus !== 'all';
+  const hasActiveFilters = filterStatus !== 'all';
 
   const handleSortClick = (key: SortKey) => {
     if (sortBy === key) {

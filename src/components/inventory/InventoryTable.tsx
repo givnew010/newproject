@@ -18,7 +18,6 @@ interface InventoryTableProps {
   totalCount: number;
   sortBy: SortKey;
   sortOrder: SortOrder;
-  searchQuery: string;
   filterStatus: string;
   onSortChange: (key: SortKey, order: SortOrder) => void;
   onRowClick: (item: InventoryItem) => void;
@@ -130,7 +129,6 @@ export function InventoryTable({
   totalCount,
   sortBy,
   sortOrder,
-  searchQuery,
   filterStatus,
   onSortChange,
   onRowClick,
@@ -138,7 +136,7 @@ export function InventoryTable({
   onDelete,
   onClearFilters,
 }: InventoryTableProps) {
-  const hasFilters = searchQuery.trim() !== '' || filterStatus !== 'all';
+  const hasFilters = filterStatus !== 'all';
 
   return (
     <div className="bg-white rounded-2xl border border-surface-container-high shadow-sm overflow-hidden">

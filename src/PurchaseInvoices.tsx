@@ -4,7 +4,7 @@ import { PurchaseInvoice, InvoiceLineItem } from './types';
 import { usePurchases, useCreatePurchase, useUpdatePurchase, useDeletePurchase, useCreatePurchasePayment, useSuppliers, useInventory } from './hooks/useApi';
 import { useToast } from './context/ToastContext';
 import { Button } from './components/ui';
-import { InvoiceStatsRow } from './components/shared/InvoiceStatsRow';
+// import { InvoiceStatsRow } from './components/shared/InvoiceStatsRow';
 import { InvoiceTable } from './components/shared/InvoiceTable';
 import { InvoiceFormModal } from './components/shared/InvoiceFormModal';
 import type { InvoiceFormState } from './components/shared/InvoiceFormModal';
@@ -53,8 +53,8 @@ export default function PurchaseInvoices() {
     );
   }, [invoices, search]);
 
-  const totalSpend = invoices.reduce((s: number, inv: PurchaseInvoice) => s + (inv.totalAmount ?? 0), 0);
-  const avgInvoice = invoices.length > 0 ? Math.round(totalSpend / invoices.length) : 0;
+  // const totalSpend = invoices.reduce((s: number, inv: PurchaseInvoice) => s + (inv.totalAmount ?? 0), 0);
+  // const avgInvoice = invoices.length > 0 ? Math.round(totalSpend / invoices.length) : 0;
 
   const openAdd = () => { setEditingId(null); setForm(emptyForm()); setIsFormOpen(true); };
   const openEdit = (inv: PurchaseInvoice) => {
@@ -129,7 +129,7 @@ export default function PurchaseInvoices() {
         </div>
       </div>
 
-      <InvoiceStatsRow mode="purchase" count={invoices.length} total={totalSpend} avg={avgInvoice} />
+      {/* <InvoiceStatsRow mode="purchase" count={invoices.length} total={totalSpend} avg={avgInvoice} /> */}
 
       <InvoiceTable
         mode="purchase"

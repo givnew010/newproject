@@ -134,7 +134,6 @@ function AppContent() {
 
   const [currentPage, setCurrentPage] = useState<Page>('dashboard');
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     document.documentElement.dir = 'rtl';
@@ -183,15 +182,15 @@ function AppContent() {
       </AnimatePresence>
 
       {/* Sidebar (extracted) */}
-      <Sidebar currentPage={currentPage} navigateTo={(p) => navigateTo(p as Page)} isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} outOfStockCount={outOfStockCount} />
+      <Sidebar currentPage={currentPage} navigateTo={(p) => navigateTo(p as Page)} isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} toggleSidebar={() => setIsSidebarOpen(s => !s)} outOfStockCount={outOfStockCount} />
 
       {/* Main Content */}
       <main className={cn(
         'min-h-screen flex flex-col transition-all duration-300',
-        isSidebarOpen ? 'lg:mr-64' : 'mr-0'
+        isSidebarOpen ? 'mr-0 lg:mr-64' : 'mr-0 lg:mr-16'
       )}>
         {/* Header (extracted) */}
-        <Header currentPage={currentPage} pageTitle={pageTitle[currentPage]} isSidebarOpen={isSidebarOpen} toggleSidebar={() => setIsSidebarOpen(s => !s)} searchQuery={searchQuery} setSearchQuery={setSearchQuery} alertsCount={alertsCount} navigateTo={(p) => navigateTo(p as Page)} />
+        <Header currentPage={currentPage} pageTitle={pageTitle[currentPage]} alertsCount={alertsCount} navigateTo={(p) => navigateTo(p as Page)} />
 
         {/* Page Content */}
         <div className="flex-1">
@@ -244,7 +243,7 @@ function AppContent() {
           </AnimatePresence>
 
           {/* Inventory Page */}
-          {currentPage === 'inventory' && <Inventory searchQuery={searchQuery} setSearchQuery={setSearchQuery} />}
+          {currentPage === 'inventory' && <Inventory />}
         </div>
       </main>
     </div>

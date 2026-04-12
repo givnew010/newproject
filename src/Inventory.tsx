@@ -1,5 +1,4 @@
-import React, { useMemo, useState, useEffect } from 'react';
-import { Search } from 'lucide-react';
+import React, { useMemo, useState } from 'react';
 import { Package } from 'lucide-react';
 import { useInventory, useCreateInventory, useUpdateInventory, useDeleteInventory } from './hooks/useApi';
 import { useToast } from './context/ToastContext';
@@ -15,12 +14,7 @@ import ConfirmDialog from './components/ConfirmDialog';
 import type { SortKey, SortOrder, ItemFormData } from './components/inventory';
 import type { InventoryItem, ItemStatus } from './types';
 
-interface InventoryProps {
-  searchQuery: string;
-  setSearchQuery: React.Dispatch<React.SetStateAction<string>>;
-}
-
-export default function Inventory({ searchQuery, setSearchQuery }: InventoryProps) {
+export default function Inventory() {
   const { items = [], loading, error, refetch } = useInventory();
   const createMutation = useCreateInventory();
   const updateMutation = useUpdateInventory();
@@ -37,12 +31,7 @@ export default function Inventory({ searchQuery, setSearchQuery }: InventoryProp
   const [filterStatus, setFilterStatus] = useState<'all' | ItemStatus>('all');
   const [sortBy, setSortBy] = useState<SortKey>('name');
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
-  const [debouncedSearch, setDebouncedSearch] = useState(searchQuery);
-
-  useEffect(() => {
-    const timer = setTimeout(() => setDebouncedSearch(searchQuery), 400);
-    return () => clearTimeout(timer);
-  }, [searchQuery]);
+  // search removed: no debounced search state
 
   const stats = useMemo(() => ({
     total: items.length,
@@ -53,14 +42,9 @@ export default function Inventory({ searchQuery, setSearchQuery }: InventoryProp
   }), [items]);
 
   const displayedItems = useMemo(() => {
-    const q = debouncedSearch.trim().toLowerCase();
     let result = items.filter(item => {
-      const matchSearch = !q ||
-        item.name.toLowerCase().includes(q) ||
-        item.sku.toLowerCase().includes(q) ||
-        item.category.toLowerCase().includes(q);
       const matchStatus = filterStatus === 'all' || item.status === filterStatus;
-      return matchSearch && matchStatus;
+      return matchStatus;
     });
     result = [...result].sort((a, b) => {
       let cmp = 0;
@@ -70,7 +54,7 @@ export default function Inventory({ searchQuery, setSearchQuery }: InventoryProp
       return sortOrder === 'asc' ? cmp : -cmp;
     });
     return result;
-  }, [items, debouncedSearch, filterStatus, sortBy, sortOrder]);
+  }, [items, filterStatus, sortBy, sortOrder]);
 
   const handleSortChange = (key: SortKey, order: SortOrder) => {
     setSortBy(key);
@@ -78,7 +62,6 @@ export default function Inventory({ searchQuery, setSearchQuery }: InventoryProp
   };
 
   const handleClearFilters = () => {
-    setSearchQuery('');
     setFilterStatus('all');
   };
 
@@ -194,19 +177,7 @@ export default function Inventory({ searchQuery, setSearchQuery }: InventoryProp
             onFilterChange={setFilterStatus}
           /> */}
 
-          <div className="flex md:hidden relative">
-            <Search size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant/60" />
-            <input
-              type="text"
-              placeholder="بحث في الأصناف..."
-              value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
-              className="input-field pr-9 w-full"
-            />
-          </div>
-
           <InventoryToolbar
-            searchQuery={searchQuery}
             filterStatus={filterStatus}
             sortBy={sortBy}
             sortOrder={sortOrder}
@@ -221,7 +192,6 @@ export default function Inventory({ searchQuery, setSearchQuery }: InventoryProp
             totalCount={stats.total}
             sortBy={sortBy}
             sortOrder={sortOrder}
-            searchQuery={searchQuery}
             filterStatus={filterStatus}
             onSortChange={handleSortChange}
             onRowClick={setViewingItem}
