@@ -105,12 +105,16 @@ export default function Sidebar({ currentPage, navigateTo, isOpen, onClose, togg
             onClick={toggleSidebar}
             aria-label={isOpen ? 'إغلاق الشريط الجانبي' : 'فتح الشريط الجانبي'}
             title={isOpen ? 'إغلاق' : 'فتح'}
-            className="w-9 h-9 rounded-lg flex items-center justify-center text-white hover:bg-white/10 transition-colors"
+            className="hidden lg:flex w-9 h-9 rounded-lg items-center justify-center text-white hover:bg-white/10 transition-colors"
           >
             {isOpen ? <X size={18} /> : <Menu size={18} />}
           </button>
-          <button onClick={onClose} className="lg:hidden p-1.5 hover:bg-white/10 rounded-lg transition-colors">
-            <X size={18} className="text-blue-200" />
+          <button
+            onClick={onClose}
+            aria-label="إغلاق القائمة"
+            className="lg:hidden w-9 h-9 rounded-lg flex items-center justify-center text-white hover:bg-white/10 transition-colors"
+          >
+            <X size={18} />
           </button>
         </div>
       </div>
