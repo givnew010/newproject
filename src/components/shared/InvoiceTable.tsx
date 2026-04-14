@@ -24,7 +24,7 @@ interface InvoiceTableProps {
   onEdit: (inv: AnyInvoice) => void;
   onDelete: (id: string) => void;
   onPayment: (inv: AnyInvoice) => void;
-  onAdd: () => void;
+  onAdd?: () => void;
 }
 
 export function InvoiceTable({ mode, invoices, onView, onEdit, onDelete, onPayment, onAdd }: InvoiceTableProps) {

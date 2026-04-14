@@ -1,8 +1,6 @@
 import React, { useMemo, useState } from 'react';
-import { Package } from 'lucide-react';
 import { useInventory, useCreateInventory, useUpdateInventory, useDeleteInventory } from './hooks/useApi';
 import { useToast } from './context/ToastContext';
-import { PageHeader } from './components/ui';
 import {
   InventoryStatsRow,
   InventoryToolbar,
@@ -11,6 +9,8 @@ import {
   ItemFormModal,
 } from './components/inventory';
 import ConfirmDialog from './components/ConfirmDialog';
+import { LoadingSpinner } from './components/ui/LoadingSpinner';
+import { ErrorState } from './components/ui/ErrorState';
 import type { SortKey, SortOrder, ItemFormData } from './components/inventory';
 import type { InventoryItem, ItemStatus } from './types';
 
@@ -28,10 +28,10 @@ export default function Inventory() {
   const [viewingItem, setViewingItem] = useState<InventoryItem | null>(null);
   const [itemToDelete, setItemToDelete] = useState<string | null>(null);
 
+  const [search, setSearch] = useState('');
   const [filterStatus, setFilterStatus] = useState<'all' | ItemStatus>('all');
   const [sortBy, setSortBy] = useState<SortKey>('name');
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
-  // search removed: no debounced search state
 
   const stats = useMemo(() => ({
     total: items.length,
@@ -42,9 +42,11 @@ export default function Inventory() {
   }), [items]);
 
   const displayedItems = useMemo(() => {
+    const q = search.trim().toLowerCase();
     let result = items.filter(item => {
       const matchStatus = filterStatus === 'all' || item.status === filterStatus;
-      return matchStatus;
+      const matchSearch = !q || item.name.toLowerCase().includes(q) || (item.sku || '').toLowerCase().includes(q) || (item.category || '').toLowerCase().includes(q);
+      return matchStatus && matchSearch;
     });
     result = [...result].sort((a, b) => {
       let cmp = 0;
@@ -63,6 +65,7 @@ export default function Inventory() {
 
   const handleClearFilters = () => {
     setFilterStatus('all');
+    setSearch('');
   };
 
   const openAdd = () => {
@@ -143,64 +146,36 @@ export default function Inventory() {
     }
   };
 
+  if (loading) return <LoadingSpinner />;
+  if (error) return <ErrorState message={error} onRetry={refetch} />;
+
   return (
     <div className="flex flex-col gap-5 p-4 lg:p-6">
-      {/* <PageHeader
-        title="إدارة المخزون"
-        subtitle="تتبع وإدارة جميع أصناف المخزون"
-        icon={<Package size={20} className="text-primary" />}
-        accentColor="blue"
-      /> */}
+      <InventoryToolbar
+        search={search}
+        onSearchChange={setSearch}
+        filterStatus={filterStatus}
+        sortBy={sortBy}
+        sortOrder={sortOrder}
+        onClearFilters={handleClearFilters}
+        onFilterChange={setFilterStatus}
+        onSortChange={handleSortChange}
+        onAdd={openAdd}
+        onRefresh={refetch}
+      />
 
-      {loading && (
-        <div className="flex items-center justify-center py-10">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
-          <span className="mr-3 text-sm text-on-surface-variant">جاري التحميل...</span>
-        </div>
-      )}
-
-      {error && (
-        <div className="bg-red-50 border border-red-200 rounded-2xl px-5 py-4 text-sm text-red-700 font-medium">
-          {error}
-        </div>
-      )}
-
-      {!loading && (
-        <>
-          {/* <InventoryStatsRow
-            total={stats.total}
-            totalValue={stats.totalValue}
-            inStock={stats.inStock}
-            lowStock={stats.lowStock}
-            outOfStock={stats.outOfStock}
-            filterStatus={filterStatus}
-            onFilterChange={setFilterStatus}
-          /> */}
-
-          <InventoryToolbar
-            filterStatus={filterStatus}
-            sortBy={sortBy}
-            sortOrder={sortOrder}
-            onClearFilters={handleClearFilters}
-            onFilterChange={setFilterStatus}
-            onSortChange={handleSortChange}
-            onAdd={openAdd}
-          />
-
-          <InventoryTable
-            items={displayedItems}
-            totalCount={stats.total}
-            sortBy={sortBy}
-            sortOrder={sortOrder}
-            filterStatus={filterStatus}
-            onSortChange={handleSortChange}
-            onRowClick={setViewingItem}
-            onEdit={openEdit}
-            onDelete={setItemToDelete}
-            onClearFilters={handleClearFilters}
-          />
-        </>
-      )}
+      <InventoryTable
+        items={displayedItems}
+        totalCount={stats.total}
+        sortBy={sortBy}
+        sortOrder={sortOrder}
+        filterStatus={filterStatus}
+        onSortChange={handleSortChange}
+        onRowClick={setViewingItem}
+        onEdit={openEdit}
+        onDelete={setItemToDelete}
+        onClearFilters={handleClearFilters}
+      />
 
       <ItemViewModal
         item={viewingItem}

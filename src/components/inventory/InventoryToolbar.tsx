@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-  Filter, Download, Plus, X,
+  Filter, Plus, X, RefreshCw, Search,
   ChevronDown, SortAsc, SortDesc, ArrowUpDown,
   Layers, TrendingUp, AlertTriangle, XCircle,
 } from 'lucide-react';
@@ -18,6 +18,8 @@ export type SortKey = 'name' | 'quantity' | 'selling_price';
 export type SortOrder = 'asc' | 'desc';
 
 interface InventoryToolbarProps {
+  search?: string;
+  onSearchChange?: (v: string) => void;
   filterStatus: 'all' | ItemStatus;
   sortBy: SortKey;
   sortOrder: SortOrder;
@@ -25,6 +27,7 @@ interface InventoryToolbarProps {
   onFilterChange: (status: 'all' | ItemStatus) => void;
   onSortChange: (key: SortKey, order: SortOrder) => void;
   onAdd: () => void;
+  onRefresh?: () => void;
 }
 
 const FILTER_OPTIONS: { key: 'all' | ItemStatus; label: string; icon: React.ReactNode }[] = [
@@ -58,6 +61,8 @@ function DropdownMenu({ isOpen, children }: { isOpen: boolean; children: React.R
 }
 
 export function InventoryToolbar({
+  search = '',
+  onSearchChange,
   filterStatus,
   sortBy,
   sortOrder,
@@ -65,6 +70,7 @@ export function InventoryToolbar({
   onFilterChange,
   onSortChange,
   onAdd,
+  onRefresh,
 }: InventoryToolbarProps) {
   const [isFilterOpen, setIsFilterOpen] = React.useState(false);
   const [isSortOpen, setIsSortOpen] = React.useState(false);
@@ -82,7 +88,24 @@ export function InventoryToolbar({
 
   return (
     <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
-      <div className="flex items-center gap-2 flex-wrap">
+      <div className="flex items-center gap-2 flex-1 max-w-lg w-full flex-wrap">
+        {onSearchChange && (
+          <div className="relative flex-1 min-w-[180px]">
+            <Search size={15} className="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant/60" />
+            <input
+              type="text"
+              placeholder="بحث بالاسم أو SKU أو الفئة..."
+              value={search}
+              onChange={e => onSearchChange(e.target.value)}
+              className="w-full bg-white border border-surface-container-high rounded-xl pr-9 pl-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary transition-all shadow-sm"
+            />
+            {search && (
+              <button onClick={() => onSearchChange('')} className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-error">
+                <X size={14} />
+              </button>
+            )}
+          </div>
+        )}
         <div className="relative">
           <button
             onClick={() => { setIsFilterOpen(v => !v); setIsSortOpen(false); }}
@@ -158,10 +181,12 @@ export function InventoryToolbar({
       </div>
 
       <div className="flex items-center gap-2">
-        <Button variant="secondary" size="sm" className="text-xs py-2 px-4">
-          <Download size={15} />
-          تصدير
-        </Button>
+        {onRefresh && (
+          <Button variant="secondary" size="sm" className="py-2 px-4" onClick={onRefresh}>
+            <RefreshCw size={15} />
+            تحديث
+          </Button>
+        )}
         <Button variant="primary" size="sm" className="py-2 px-4" onClick={onAdd}>
           <Plus size={15} />
           إضافة صنف

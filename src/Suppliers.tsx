@@ -154,15 +154,13 @@ export default function Suppliers() {
         />
       )}
 
-      {deleteTarget !== null && (
-        <ConfirmDialog
-          isOpen={deleteTarget !== null}
-          message="هل تريد تعطيل هذا المورد؟"
-          confirmLabel="تعطيل"
-          onConfirm={handleDelete}
-          onCancel={() => setDeleteTarget(null)}
-        />
-      )}
+      <ConfirmDialog
+        open={deleteTarget !== null}
+        message="هل تريد تعطيل هذا المورد؟"
+        confirmLabel="تعطيل"
+        onConfirm={handleDelete}
+        onCancel={() => setDeleteTarget(null)}
+      />
     </div>
   );
 }

@@ -34,8 +34,8 @@ export function ContactTable({ mode, rows, onEdit, onDelete, onStatement }: Cont
   const isCustomer = mode === 'customer';
   const nameHeader = isCustomer ? 'العميل' : 'المورد';
   const balanceHeader = isCustomer ? 'الرصيد' : 'المستحق';
-  const hoverColor = isCustomer ? 'hover:bg-success/40' : 'hover:bg-primary/10';
-  const btnHover = isCustomer ? 'hover:text-success hover:bg-success/10' : 'hover:text-primary hover:bg-surface-container-low';
+  const hoverColor = 'hover:bg-primary/5';
+  const btnHover = 'hover:text-primary hover:bg-primary/10';
   const emptyLabel = isCustomer ? 'لا يوجد عملاء مطابقون' : 'لا يوجد موردون مطابقون';
   const amountColor = (due: number) =>
     due > 0 ? 'text-error' : (isCustomer ? 'text-success' : 'text-warning');

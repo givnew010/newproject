@@ -117,15 +117,13 @@ export default function Warehouses() {
         />
       )}
 
-      {deleteTarget !== null && (
-        <ConfirmDialog
-          isOpen={deleteTarget !== null}
-          message="هل تريد حذف هذا المستودع؟ سيتم إزالة جميع البيانات المرتبطة به."
-          confirmLabel="حذف"
-          onConfirm={handleDelete}
-          onCancel={() => setDeleteTarget(null)}
-        />
-      )}
+      <ConfirmDialog
+        open={deleteTarget !== null}
+        message="هل تريد حذف هذا المستودع؟ سيتم إزالة جميع البيانات المرتبطة به."
+        confirmLabel="حذف"
+        onConfirm={handleDelete}
+        onCancel={() => setDeleteTarget(null)}
+      />
     </div>
   );
 }

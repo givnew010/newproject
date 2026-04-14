@@ -217,7 +217,7 @@ function AppContent() {
             )}
             {currentPage === 'warehouses' && (
               <motion.div key="warehouses" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }}>
-                <Warehouses inventoryItems={inventoryItems} />
+                <Warehouses />
               </motion.div>
             )}
             {currentPage === 'customers' && (

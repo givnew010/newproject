@@ -118,7 +118,7 @@ export default function PurchaseInvoices() {
               placeholder="بحث بالرقم أو المورد..."
               value={search}
               onChange={e => setSearch(e.target.value)}
-              className="w-full bg-white border border-surface-container-high rounded-xl pr-9 pl-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-violet-500 transition-all shadow-sm"
+              className="w-full bg-white border border-surface-container-high rounded-xl pr-9 pl-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary transition-all shadow-sm"
             />
             {search && <button onClick={() => setSearch('')} className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-error"><X size={14} /></button>}
           </div>
@@ -178,15 +178,13 @@ export default function PurchaseInvoices() {
         />
       )}
 
-      {deleteTarget && (
-        <ConfirmDialog
-          isOpen={!!deleteTarget}
-          message="هل تريد حذف هذه الفاتورة؟ لا يمكن التراجع."
-          confirmLabel="حذف"
-          onConfirm={handleDelete}
-          onCancel={() => setDeleteTarget(null)}
-        />
-      )}
+      <ConfirmDialog
+        open={!!deleteTarget}
+        message="هل تريد حذف هذه الفاتورة؟ لا يمكن التراجع."
+        confirmLabel="حذف"
+        onConfirm={handleDelete}
+        onCancel={() => setDeleteTarget(null)}
+      />
     </div>
   );
 }
