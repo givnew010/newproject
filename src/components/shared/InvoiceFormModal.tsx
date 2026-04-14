@@ -136,7 +136,7 @@ export function InvoiceFormModal({
                 <select
                   value={form.party}
                   onChange={e => setForm({ ...form, party: e.target.value })}
-                  className={cn('w-full bg-surface-container-low border border-surface-container-high rounded-xl px-3 py-2.5 focus:ring-2 transition-all text-sm outline-none', colorCls.focus)}
+                  className={cn('w-full bg-surface-container-low border border-surface-container-high rounded-xl px-3 h-10 focus:ring-2 transition-all text-sm outline-none', colorCls.focus)}
                 >
                   <option value="">{partyPlaceholder}</option>
                   {partyList.map(p => (
@@ -158,13 +158,13 @@ export function InvoiceFormModal({
                   placeholder="أي ملاحظات تتعلق بالفاتورة..."
                   value={form.notes}
                   onChange={e => setForm({ ...form, notes: e.target.value })}
-                  className={cn('w-full bg-surface-container-low border border-surface-container-high rounded-xl px-3 py-2.5 focus:ring-2 transition-all text-sm outline-none resize-none', colorCls.focus)}
+                  className={cn('w-full bg-surface-container-low border border-surface-container-high rounded-xl px-3 h-10 focus:ring-2 transition-all text-sm outline-none resize-none', colorCls.focus)}
                 />
               </div>
             </div>
 
             {stockWarning && (
-              <div className="flex items-center gap-2 bg-amber-50 text-amber-700 rounded-xl px-3 py-2.5 text-xs font-medium border border-amber-200">
+              <div className="flex items-center gap-2 bg-amber-50 text-amber-700 rounded-xl px-3 h-10 text-xs font-medium border border-amber-200">
                 <AlertCircle size={14} />{stockWarning}
               </div>
             )}
@@ -175,7 +175,7 @@ export function InvoiceFormModal({
                 <h3 className="text-sm font-extrabold text-on-surface">{itemsLabel}</h3>
                 <button
                   onClick={addItem}
-                  className={cn('flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-xl transition-colors border', colorCls.addBtn)}
+                  className={cn('flex items-center gap-1.5 text-xs font-bold px-3 h-10 rounded-xl transition-colors border', colorCls.addBtn)}
                 >
                   <PackagePlus size={14} />إضافة صنف
                 </button>
@@ -186,11 +186,11 @@ export function InvoiceFormModal({
                   <table className="w-full text-right text-sm">
                     <thead>
                       <tr className="bg-surface-container-low/80 border-b border-surface-container-high">
-                        <th className="px-3 py-2.5 text-[11px] font-bold text-on-surface-variant">الصنف</th>
-                        <th className="px-3 py-2.5 text-[11px] font-bold text-on-surface-variant w-24">الكمية</th>
-                        <th className="px-3 py-2.5 text-[11px] font-bold text-on-surface-variant w-28">{priceLabel}</th>
-                        <th className="px-3 py-2.5 text-[11px] font-bold text-on-surface-variant w-28">الإجمالي</th>
-                        <th className="px-3 py-2.5 w-10" />
+                        <th className="px-3 py-2 text-[11px] font-bold text-on-surface-variant">الصنف</th>
+                        <th className="px-3 py-2 text-[11px] font-bold text-on-surface-variant w-24">الكمية</th>
+                        <th className="px-3 py-2 text-[11px] font-bold text-on-surface-variant w-28">{priceLabel}</th>
+                        <th className="px-3 py-2 text-[11px] font-bold text-on-surface-variant w-28">الإجمالي</th>
+                        <th className="px-3 py-2 w-10" />
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-surface-container-low">
@@ -209,7 +209,7 @@ export function InvoiceFormModal({
                                     selectInventoryItem(index, e.target.value);
                                   }
                                 }}
-                                className="w-full bg-surface-container-low border border-surface-container-high rounded-lg px-2.5 py-1.5 text-sm outline-none focus:ring-2 focus:ring-primary transition-all appearance-none min-w-[160px]"
+                                className="w-full bg-surface-container-low border border-surface-container-high rounded-lg px-2.5 h-10 text-sm outline-none focus:ring-2 focus:ring-primary transition-all appearance-none min-w-[160px]"
                               >
                                 <option value="">— اختر صنفاً —</option>
                                 {inventoryItems.map(inv => (
@@ -223,14 +223,14 @@ export function InvoiceFormModal({
                               <input
                                 type="number" min={1} value={item.quantity}
                                 onChange={e => updateItem(index, 'quantity', Number(e.target.value))}
-                                className="w-full bg-surface-container-low border border-surface-container-high rounded-lg px-2.5 py-1.5 text-sm outline-none focus:ring-2 focus:ring-primary transition-all text-center"
+                                className="w-full bg-surface-container-low border border-surface-container-high rounded-lg px-2.5 h-10 text-sm outline-none focus:ring-2 focus:ring-primary transition-all text-center"
                               />
                             </td>
                             <td className="px-3 py-2">
                               <input
                                 type="number" min={0} step={0.01} value={item.price}
                                 onChange={e => updateItem(index, 'price', Number(e.target.value))}
-                                className="w-full bg-surface-container-low border border-surface-container-high rounded-lg px-2.5 py-1.5 text-sm outline-none focus:ring-2 focus:ring-primary transition-all text-center"
+                                className="w-full bg-surface-container-low border border-surface-container-high rounded-lg px-2.5 h-10 text-sm outline-none focus:ring-2 focus:ring-primary transition-all text-center"
                               />
                             </td>
                             <td className="px-3 py-2">
@@ -253,8 +253,8 @@ export function InvoiceFormModal({
                     </tbody>
                     <tfoot className="bg-surface-container-low/50 border-t border-surface-container-high">
                       <tr>
-                        <td colSpan={3} className="px-3 py-2.5 text-left text-xs font-bold text-on-surface-variant">الإجمالي الكلي</td>
-                        <td className={cn('px-3 py-2.5 text-sm font-extrabold', colorCls.total)}>
+                        <td colSpan={3} className="px-3 py-2 text-left text-xs font-bold text-on-surface-variant">الإجمالي الكلي</td>
+                        <td className={cn('px-3 py-2 text-sm font-extrabold', colorCls.total)}>
                           {total.toLocaleString('ar-SA')} ر.س
                         </td>
                         <td />

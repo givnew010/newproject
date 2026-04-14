@@ -135,19 +135,19 @@ export function InvoiceViewModal({ mode, invoice, onClose, onEdit, onDelete, onP
           <div className="p-4 border-t border-surface-container-low flex gap-2 flex-shrink-0">
             <button
               onClick={() => { onPayment(invoice); onClose(); }}
-              className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border border-blue-200 bg-blue-50 text-blue-700 text-xs font-bold hover:bg-blue-100 transition-colors"
+              className="flex-1 flex items-center justify-center gap-2 h-10 rounded-xl border border-blue-200 bg-blue-50 text-blue-700 text-xs font-bold hover:bg-blue-100 transition-colors"
             >
               <CreditCard size={14} /> تسجيل دفعة
             </button>
             <button
               onClick={() => { onEdit(invoice); onClose(); }}
-              className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-primary text-white text-xs font-bold hover:bg-primary/90 transition-colors"
+              className="flex-1 flex items-center justify-center gap-2 h-10 rounded-xl bg-primary text-white text-xs font-bold hover:bg-primary/90 transition-colors"
             >
               <Edit2 size={14} /> تعديل
             </button>
             <button
               onClick={() => { onDelete(invoice.id); onClose(); }}
-              className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-red-200 bg-red-50 text-red-600 text-xs font-bold hover:bg-red-100 transition-colors"
+              className="flex items-center justify-center gap-2 px-4 h-10 rounded-xl border border-red-200 bg-red-50 text-red-600 text-xs font-bold hover:bg-red-100 transition-colors"
             >
               <Trash2 size={14} />
             </button>

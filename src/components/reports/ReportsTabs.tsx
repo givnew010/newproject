@@ -27,7 +27,7 @@ export function ReportsTabs({ active, onChange }: ReportsTabsProps) {
           key={tab.id}
           onClick={() => onChange(tab.id)}
           className={cn(
-            'flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold whitespace-nowrap transition-all',
+            'flex items-center gap-2 px-4 h-10 rounded-xl text-sm font-bold whitespace-nowrap transition-all',
             active === tab.id
               ? 'bg-white text-primary shadow-sm'
               : 'text-on-surface-variant hover:text-on-surface hover:bg-white/50'

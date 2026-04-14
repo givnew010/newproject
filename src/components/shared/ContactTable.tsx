@@ -101,23 +101,23 @@ export function ContactTable({ mode, rows, onEdit, onDelete, onStatement }: Cont
                     )}
                   </td>
                   <td className="px-5 py-3.5 text-left">
-                    <div className="flex items-center justify-end gap-1">
+                    <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                       <button
-                        onClick={() => onStatement(row)}
+                        onClick={(e) => { e.stopPropagation(); onStatement(row); }}
                         title="كشف الحساب"
                         className={cn('p-2 rounded-xl text-on-surface-variant/40 transition-all', btnHover)}
                       >
                         <CreditCard size={15} />
                       </button>
                       <button
-                        onClick={() => onEdit(row)}
+                        onClick={(e) => { e.stopPropagation(); onEdit(row); }}
                         title="تعديل"
                         className={cn('p-2 rounded-xl text-on-surface-variant/40 transition-all', btnHover)}
                       >
                         <Edit2 size={15} />
                       </button>
                       <button
-                        onClick={() => onDelete(row.id)}
+                        onClick={(e) => { e.stopPropagation(); onDelete(row.id); }}
                         title="تعطيل"
                         className="p-2 rounded-xl text-error/80 hover:text-error hover:bg-error/10 transition-all"
                       >

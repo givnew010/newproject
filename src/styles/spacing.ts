@@ -13,11 +13,11 @@ export const spacing = {
     header: 'px-4 py-3',
     cell: 'px-4 py-3',
   },
-  input: 'px-3 py-2',
+  input: 'px-3 h-10',
   button: {
-    sm: 'px-3 py-1.5',
-    md: 'px-4 py-2',
-    lg: 'px-5 py-2.5',
+    sm: 'px-3 h-10',
+    md: 'px-5 h-10',
+    lg: 'px-6 h-10',
   },
   gap: {
     xs: 'gap-2',

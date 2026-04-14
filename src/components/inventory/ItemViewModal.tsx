@@ -113,7 +113,7 @@ export function ItemViewModal({ item, onClose, onEdit, onDelete }: ItemViewModal
             <div className="p-4 border-t border-surface-container-low flex gap-2">
               <Button
                 variant="primary"
-                className="flex-1 justify-center py-2.5 text-sm"
+                className="flex-1 justify-center h-10 text-sm"
                 onClick={() => { onClose(); onEdit(item); }}
               >
                 <Edit2 size={15} />
@@ -121,7 +121,7 @@ export function ItemViewModal({ item, onClose, onEdit, onDelete }: ItemViewModal
               </Button>
               <Button
                 variant="outline"
-                className="px-4 py-2.5 border-red-200 text-red-600 hover:bg-red-50 font-bold text-sm"
+                className="px-4 h-10 border-red-200 text-red-600 hover:bg-red-50 font-bold text-sm"
                 onClick={() => { onDelete(item.id); onClose(); }}
               >
                 <Trash2 size={15} />

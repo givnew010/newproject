@@ -138,13 +138,13 @@ export default function SalesInvoices() {
         <div className="flex items-center gap-2 flex-1 max-w-lg w-full">
           <div className="relative flex-1">
             <Search size={15} className="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant/60" />
-            <input
-              type="text"
-              placeholder="بحث بالرقم أو العميل..."
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              className="w-full bg-white border border-surface-container-high rounded-xl pr-9 pl-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary transition-all shadow-sm"
-            />
+              <input
+                type="text"
+                placeholder="بحث بالرقم أو العميل..."
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                className="w-full bg-white border border-surface-container-high rounded-xl pr-9 pl-4 h-10 text-sm outline-none focus:ring-2 focus:ring-primary transition-all shadow-sm"
+              />
             {search && (
               <button onClick={() => setSearch('')} className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-error">
                 <X size={14} />

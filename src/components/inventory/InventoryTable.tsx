@@ -141,7 +141,7 @@ export function InventoryTable({
   return (
     <div className="bg-white rounded-2xl border border-surface-container-high shadow-sm overflow-hidden">
       <div className="overflow-x-auto">
-        <table className="w-full">
+        <table className="w-full text-right">
           <thead>
             <tr className="bg-surface-container-low/80 border-b border-surface-container-high text-right">
               <th className="px-5 py-3.5 text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">
@@ -186,7 +186,7 @@ export function InventoryTable({
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: idx * 0.03 }}
-                  className="border-b border-surface-container-low last:border-0 hover:bg-surface-container-low/40 transition-colors cursor-pointer"
+                  className="border-b border-surface-container-low last:border-0 group hover:bg-surface-container-low/40 transition-colors cursor-pointer"
                   onClick={() => onRowClick(item)}
                 >
                   <td className="px-5 py-3.5">
@@ -214,7 +214,7 @@ export function InventoryTable({
                   </td>
                   <StatusCell status={item.status} />
                   <td className="px-5 py-3.5 text-left">
-                    <div className="flex items-center justify-end gap-1.5">
+                    <div className="flex items-center justify-end gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
                       <button
                         onClick={(e) => { e.stopPropagation(); onEdit(item); }}
                         className="p-2 rounded-xl text-on-surface-variant/50 hover:text-primary hover:bg-primary-fixed/50 transition-all"

@@ -97,7 +97,7 @@ export function InventoryToolbar({
               placeholder="بحث بالاسم أو SKU أو الفئة..."
               value={search}
               onChange={e => onSearchChange(e.target.value)}
-              className="w-full bg-white border border-surface-container-high rounded-xl pr-9 pl-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary transition-all shadow-sm"
+              className="w-full bg-white border border-surface-container-high rounded-xl pr-9 pl-4 h-10 text-sm outline-none focus:ring-2 focus:ring-primary transition-all shadow-sm"
             />
             {search && (
               <button onClick={() => onSearchChange('')} className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-error">
@@ -107,9 +107,9 @@ export function InventoryToolbar({
           </div>
         )}
         <div className="relative">
-          <button
+          <Button
             onClick={() => { setIsFilterOpen(v => !v); setIsSortOpen(false); }}
-            className="bg-white px-4 py-2 rounded-xl text-sm font-medium text-on-surface-variant flex items-center gap-2 border border-surface-container-high hover:bg-surface-container-low transition-all shadow-sm"
+            variant="secondary"
           >
             <Filter size={15} />
             <span>تصفية</span>
@@ -117,14 +117,14 @@ export function InventoryToolbar({
               <span className="w-2 h-2 rounded-full bg-primary" />
             )}
             <ChevronDown size={13} className={cn('transition-transform', isFilterOpen && 'rotate-180')} />
-          </button>
+          </Button>
           <DropdownMenu isOpen={isFilterOpen}>
             {FILTER_OPTIONS.map(({ key, label, icon }) => (
               <button
                 key={key}
                 onClick={() => { onFilterChange(key); setIsFilterOpen(false); }}
                 className={cn(
-                  'w-full text-right px-4 py-2.5 text-sm transition-colors flex items-center gap-2',
+                  'w-full text-right px-4 h-10 text-sm transition-colors flex items-center gap-2',
                   filterStatus === key
                     ? 'bg-primary-fixed text-primary font-bold'
                     : 'hover:bg-surface-container-low text-on-surface'
@@ -138,21 +138,21 @@ export function InventoryToolbar({
         </div>
 
         <div className="relative">
-          <button
+          <Button
             onClick={() => { setIsSortOpen(v => !v); setIsFilterOpen(false); }}
-            className="bg-white px-4 py-2 rounded-xl text-sm font-medium text-on-surface-variant flex items-center gap-2 border border-surface-container-high hover:bg-surface-container-low transition-all shadow-sm"
+            variant="secondary"
           >
             <ArrowUpDown size={15} />
             <span>ترتيب</span>
             <ChevronDown size={13} className={cn('transition-transform', isSortOpen && 'rotate-180')} />
-          </button>
+          </Button>
           <DropdownMenu isOpen={isSortOpen}>
             {SORT_OPTIONS.map(({ key, label }) => (
               <button
                 key={key}
                 onClick={() => handleSortClick(key)}
                 className={cn(
-                  'w-full text-right px-4 py-2.5 text-sm transition-colors flex items-center justify-between',
+                  'w-full text-right px-4 h-10 text-sm transition-colors flex items-center justify-between',
                   sortBy === key
                     ? 'bg-primary-fixed text-primary font-bold'
                     : 'hover:bg-surface-container-low text-on-surface'
@@ -182,12 +182,12 @@ export function InventoryToolbar({
 
       <div className="flex items-center gap-2">
         {onRefresh && (
-          <Button variant="secondary" size="sm" className="py-2 px-4" onClick={onRefresh}>
+          <Button variant="secondary" onClick={onRefresh}>
             <RefreshCw size={15} />
             تحديث
           </Button>
         )}
-        <Button variant="primary" size="sm" className="py-2 px-4" onClick={onAdd}>
+        <Button variant="primary" onClick={onAdd}>
           <Plus size={15} />
           إضافة صنف
         </Button>

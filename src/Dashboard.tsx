@@ -1,7 +1,7 @@
 import React from 'react';
 import { TrendingUp, TrendingDown, DollarSign, Layers, ShoppingCart, XCircle, RefreshCw } from 'lucide-react';
 import { useDashboard } from './hooks/useApi';
-import { KPICard } from './components/ui';
+import { KPICard, Button } from './components/ui';
 import { WelcomeBanner, QuickLinks, RecentActivity, StockAlerts } from './components/dashboard';
 
 interface Props {
@@ -52,12 +52,9 @@ export default function Dashboard({ onNavigate }: Props) {
           </div>
           <h3 className="text-lg font-bold text-on-surface mb-2">فشل في تحميل البيانات</h3>
           <p className="text-on-surface-variant mb-4">{error}</p>
-          <button
-            onClick={refetch}
-            className="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-xl hover:bg-primary/90 transition-colors mx-auto"
-          >
+          <Button onClick={refetch} className="mx-auto" variant="primary">
             <RefreshCw size={16} />إعادة المحاولة
-          </button>
+          </Button>
         </div>
       </div>
     );

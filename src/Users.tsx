@@ -122,14 +122,14 @@ export default function UsersPage() {
               placeholder="بحث بالاسم أو البريد أو القسم..."
               value={search}
               onChange={e => setSearch(e.target.value)}
-              className="w-full bg-white border border-surface-container-high rounded-xl pr-9 pl-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary transition-all shadow-sm"
+              className="w-full bg-white border border-surface-container-high rounded-xl pr-9 pl-4 h-10 text-sm outline-none focus:ring-2 focus:ring-primary transition-all shadow-sm"
             />
             {search && <button onClick={() => setSearch('')} className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-error"><X size={14} /></button>}
           </div>
           <select
             value={roleFilter}
             onChange={e => setRoleFilter(e.target.value)}
-            className="border border-surface-container-high rounded-xl px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary bg-white"
+            className="border border-surface-container-high rounded-xl px-3 h-10 text-sm outline-none focus:ring-2 focus:ring-primary bg-white"
           >
             <option value="all">كل الأدوار</option>
             <option value="admin">مسؤول</option>

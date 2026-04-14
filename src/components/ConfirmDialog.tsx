@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { X } from 'lucide-react';
+import { Button } from './ui';
 
 type ConfirmDialogProps = {
   open: boolean;
@@ -50,8 +51,8 @@ export default function ConfirmDialog({
             </div>
 
             <div className="p-4 border-t flex items-center justify-end gap-2">
-              <button onClick={onCancel} className="px-4 py-2 rounded-xl border">{cancelLabel}</button>
-              <button onClick={onConfirm} className="px-4 py-2 rounded-xl bg-error text-white font-bold">{confirmLabel}</button>
+              <Button variant="outline" onClick={onCancel}>{cancelLabel}</Button>
+              <Button variant="danger" onClick={onConfirm}>{confirmLabel}</Button>
             </div>
           </motion.div>
         </div>

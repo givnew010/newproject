@@ -139,16 +139,6 @@ app.use((err: Error, _req: express.Request, res: express.Response, _next: expres
 // ══════════════════════════════════════════════════════════════════════════════
 app.listen(PORT, () => {
   console.log(`\n🚀 السيرفر يعمل على: http://localhost:${PORT}`);
-  console.log(`📡 Health check:      http://localhost:${PORT}/api/v1/health`);
-  console.log(`🔐 Auth endpoints:    http://localhost:${PORT}/api/v1/auth`);
-  console.log(`👥 Users endpoints:   http://localhost:${PORT}/api/v1/users`);
-  console.log(`📦 Inventory:         http://localhost:${PORT}/api/v1/inventory`);
-  console.log(`🏭 Warehouses:        http://localhost:${PORT}/api/v1/warehouses`);
-  console.log(`👥 Customers:         http://localhost:${PORT}/api/v1/customers`);
-  console.log(`🏢 Suppliers:         http://localhost:${PORT}/api/v1/suppliers`);
-  console.log(`🛒 Sales:             http://localhost:${PORT}/api/v1/sales`);
-  console.log(`📄 Purchases:         http://localhost:${PORT}/api/v1/purchases`);
-  console.log(`\n⚠️  تذكر: أضف proxy في vite.config.ts لتوجيه /api إلى هذا السيرفر\n`);
 });
 
 export default app;

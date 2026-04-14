@@ -113,7 +113,7 @@ export default function Suppliers() {
               placeholder="بحث بالاسم أو الهاتف أو البريد..."
               value={search}
               onChange={e => setSearch(e.target.value)}
-              className="w-full bg-white border border-surface-container-high rounded-xl pr-9 pl-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary transition-all shadow-sm"
+              className="w-full bg-white border border-surface-container-high rounded-xl pr-9 pl-4 h-10 text-sm outline-none focus:ring-2 focus:ring-primary transition-all shadow-sm"
             />
             {search && <button onClick={() => setSearch('')} className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-error"><X size={14} /></button>}
           </div>

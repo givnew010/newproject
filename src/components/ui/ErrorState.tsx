@@ -1,5 +1,6 @@
 import React from 'react';
 import { XCircle, RefreshCw } from 'lucide-react';
+import { Button } from './Button';
 
 interface ErrorStateProps {
   message: string;
@@ -15,13 +16,10 @@ export function ErrorState({ message, onRetry, retryLabel = 'إعادة المح
       </div>
       <p className="text-error font-medium text-sm">{message}</p>
       {onRetry && (
-        <button
-          onClick={onRetry}
-          className="inline-flex items-center gap-2 bg-error text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-error/90 transition-colors"
-        >
+        <Button variant="danger" onClick={onRetry} className="inline-flex items-center gap-2">
           <RefreshCw size={14} />
           {retryLabel}
-        </button>
+        </Button>
       )}
     </div>
   );

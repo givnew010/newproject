@@ -84,7 +84,7 @@ export function PaymentModal({ mode, invoiceNumber, totalAmount, payment, setPay
                 placeholder="0.00"
                 value={payment.amount}
                 onChange={e => setPayment({ ...payment, amount: e.target.value })}
-                className="w-full bg-surface-container-high border-none rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500 transition-all font-bold text-center"
+                className="w-full bg-surface-container-high border-none rounded-xl px-4 h-10 text-sm outline-none focus:ring-2 focus:ring-blue-500 transition-all font-bold text-center"
                 dir="ltr"
               />
             </div>
@@ -98,14 +98,14 @@ export function PaymentModal({ mode, invoiceNumber, totalAmount, payment, setPay
                     key={m.value}
                     onClick={() => setPayment({ ...payment, method: m.value })}
                     className={cn(
-                      'py-2 rounded-xl text-xs font-bold transition-all border',
+                      'h-10 rounded-xl text-xs font-bold transition-all border px-4',
                       payment.method === m.value
                         ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
                         : 'border-surface-container-high text-on-surface-variant hover:bg-surface-container-low'
                     )}
                   >
-                    {m.label}
-                  </button>
+                      {m.label}
+                    </button>
                 ))}
               </div>
             </div>
@@ -118,7 +118,7 @@ export function PaymentModal({ mode, invoiceNumber, totalAmount, payment, setPay
                 placeholder="ملاحظات الدفعة (اختياري)..."
                 value={payment.notes}
                 onChange={e => setPayment({ ...payment, notes: e.target.value })}
-                className="w-full bg-surface-container-high border-none rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500 transition-all resize-none"
+                className="w-full bg-surface-container-high border-none rounded-xl px-4 h-10 text-sm outline-none focus:ring-2 focus:ring-blue-500 transition-all resize-none"
               />
             </div>
           </div>

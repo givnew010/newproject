@@ -24,12 +24,12 @@ export function WelcomeBanner({ onRefresh, loading }: WelcomeBannerProps) {
         <button
           onClick={onRefresh}
           disabled={loading}
-          className="flex items-center gap-2 bg-white/15 backdrop-blur-sm border border-white/20 rounded-xl px-3 py-2 text-xs font-bold text-white hover:bg-white/20 transition-colors disabled:opacity-50"
+          className="flex items-center gap-2 bg-white/15 backdrop-blur-sm border border-white/20 rounded-xl px-3 h-10 text-xs font-bold text-white hover:bg-white/20 transition-colors disabled:opacity-50"
         >
           <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
           تحديث
         </button>
-        <div className="flex items-center gap-2 bg-white/15 backdrop-blur-sm border border-white/20 rounded-xl px-4 py-2.5 w-fit">
+        <div className="flex items-center gap-2 bg-white/15 backdrop-blur-sm border border-white/20 rounded-xl px-4 h-10 w-fit">
           <Activity size={15} className="text-emerald-300" />
           <span className="text-xs font-bold text-white">النظام يعمل بشكل طبيعي</span>
           <span className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" />

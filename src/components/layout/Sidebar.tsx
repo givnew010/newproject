@@ -42,8 +42,8 @@ function NavItem({ icon, label, active, onClick, badge, collapsed }: { icon: Rea
       onClick={onClick}
       className={cn(
         compact
-          ? 'w-full flex items-center justify-center py-3 transition-colors rounded-lg'
-          : 'w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-right group relative',
+          ? 'w-full flex items-center justify-center h-10 transition-colors rounded-lg'
+          : 'w-full flex items-center gap-3 px-3 h-10 rounded-xl text-sm font-medium transition-all text-right group relative',
         active ? (compact ? 'bg-white/10 text-white' : 'bg-white text-primary shadow-sm font-bold') : 'text-blue-100 hover:bg-white/15 hover:text-white'
       )}
       title={label}
@@ -127,7 +127,7 @@ export default function Sidebar({ currentPage, navigateTo, isOpen, onClose, togg
           <NavItem icon={<Package size={18} />} label="الأصناف" active={currentPage === 'inventory'} onClick={() => navigateTo('inventory')} badge={outCount} collapsed={collapsed} />
 
           <div className="px-1">
-            <button onClick={() => toggleGroup('contacts')} className={cn('w-full flex items-center gap-3 px-2 py-2 rounded-md text-sm font-semibold transition-all', openGroups.contacts && !collapsed ? 'text-primary' : 'text-blue-100 hover:bg-white/5')}>
+            <button onClick={() => toggleGroup('contacts')} className={cn('w-full flex items-center gap-3 px-2 h-10 rounded-md text-sm font-semibold transition-all', openGroups.contacts && !collapsed ? 'text-primary' : 'text-blue-100 hover:bg-white/5')}>
               <span className={cn('flex-shrink-0')}>{/* icon */}<Users size={18} /></span>
               {!collapsed && <span className="flex-1 text-right">جهات الاتصال</span>}
               {!collapsed && <ChevronDown className={cn('transition-transform', openGroups.contacts && 'rotate-180')} />}
@@ -141,7 +141,7 @@ export default function Sidebar({ currentPage, navigateTo, isOpen, onClose, togg
           </div>
 
           <div className="px-1">
-            <button onClick={() => toggleGroup('invoices')} className={cn('w-full flex items-center gap-3 px-2 py-2 rounded-md text-sm font-semibold transition-all', openGroups.invoices && !collapsed ? 'text-primary' : 'text-blue-100 hover:bg-white/5')}>
+            <button onClick={() => toggleGroup('invoices')} className={cn('w-full flex items-center gap-3 px-2 h-10 rounded-md text-sm font-semibold transition-all', openGroups.invoices && !collapsed ? 'text-primary' : 'text-blue-100 hover:bg-white/5')}>
               <span className={cn('flex-shrink-0')}><ShoppingBag size={18} /></span>
               {!collapsed && <span className="flex-1 text-right">الفواتير</span>}
               {!collapsed && <ChevronDown className={cn('transition-transform', openGroups.invoices && 'rotate-180')} />}
@@ -155,7 +155,7 @@ export default function Sidebar({ currentPage, navigateTo, isOpen, onClose, togg
           </div>
 
           <div className="px-1">
-            <button onClick={() => toggleGroup('analytics')} className={cn('w-full flex items-center gap-3 px-2 py-2 rounded-md text-sm font-semibold transition-all', openGroups.analytics && !collapsed ? 'text-primary' : 'text-blue-100 hover:bg-white/5')}>
+            <button onClick={() => toggleGroup('analytics')} className={cn('w-full flex items-center gap-3 px-2 h-10 rounded-md text-sm font-semibold transition-all', openGroups.analytics && !collapsed ? 'text-primary' : 'text-blue-100 hover:bg-white/5')}>
               <span className={cn('flex-shrink-0')}><BarChart3 size={18} /></span>
               {!collapsed && <span className="flex-1 text-right">تحليلات</span>}
               {!collapsed && <ChevronDown className={cn('transition-transform', openGroups.analytics && 'rotate-180')} />}
@@ -169,7 +169,7 @@ export default function Sidebar({ currentPage, navigateTo, isOpen, onClose, togg
           </div>
 
           <div className="px-1">
-            <button onClick={() => toggleGroup('system')} className={cn('w-full flex items-center gap-3 px-2 py-2 rounded-md text-sm font-semibold transition-all', openGroups.system && !collapsed ? 'text-primary' : 'text-blue-100 hover:bg-white/5')}>
+            <button onClick={() => toggleGroup('system')} className={cn('w-full flex items-center gap-3 px-2 h-10 rounded-md text-sm font-semibold transition-all', openGroups.system && !collapsed ? 'text-primary' : 'text-blue-100 hover:bg-white/5')}>
               <span className={cn('flex-shrink-0')}><Settings size={18} /></span>
               {!collapsed && <span className="flex-1 text-right">النظام</span>}
               {!collapsed && <ChevronDown className={cn('transition-transform', openGroups.system && 'rotate-180')} />}
@@ -185,7 +185,7 @@ export default function Sidebar({ currentPage, navigateTo, isOpen, onClose, togg
       </nav>
 
       <div className="p-3 border-t border-white/10">
-        <div className={cn('px-3 py-2.5 rounded-xl hover:bg-white/10 transition-colors', collapsed ? 'flex flex-col items-center' : 'flex items-center gap-3')}>
+        <div className={cn('px-3 h-10 rounded-xl hover:bg-white/10 transition-colors', collapsed ? 'flex flex-col items-center' : 'flex items-center gap-3')}>
           <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
             <span className="text-white font-bold text-sm">م</span>
           </div>
